@@ -23,3 +23,16 @@ app.get("/api/status", (req, res) => {
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
+{
+  "name": "nexora-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Nexora Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
