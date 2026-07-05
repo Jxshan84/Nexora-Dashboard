@@ -2,8 +2,11 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const { Client, GatewayIntentBits } = require("discord.js");
 const mongoose = require("mongoose");
+const { Client, GatewayIntentBits } = require("discord.js");
+
+const commandHandler = require("./handlers/commandHandler");
+
 const app = express();
 
 app.use(cors());
@@ -15,7 +18,17 @@ const client = new Client({
   ]
 });
 
-// Dashboard Health Check
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => console.error("❌ MongoDB Error:", err));
+
+// Home Route
+app.get("/", (req, res) => {
+  res.send("👑 Rudra Backend Running");
+});
+
+// Health API
 app.get("/health", (req, res) => {
   res.json({
     status: client.isReady() ? "Online" : "Offline",
@@ -29,26 +42,19 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("/health", (req, res) => {
-  res.json({
-    status: "online",
-    bot: client.user ? client.user.tag : "Starting..."
-  });
-});
-
-// Discord Bot Ready
-client.once("ready", () => {
+// Discord Ready
+client.once("ready", async () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
+
+  commandHandler(client);
+
+  console.log("✅ Command Handler Loaded");
 });
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Error:", err));
-
-// Login Bot
+// Login
 client.login(process.env.TOKEN);
 
-// Start Server
+// Server Start
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
