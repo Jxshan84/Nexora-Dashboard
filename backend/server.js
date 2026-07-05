@@ -16,8 +16,17 @@ const client = new Client({
 });
 
 // Dashboard Health Check
-app.get("/", (req, res) => {
-  res.send("👑 Nexora Backend is Running!");
+app.get("/health", (req, res) => {
+  res.json({
+    status: client.isReady() ? "Online" : "Offline",
+    bot: client.user?.tag || "Starting...",
+    ping: client.ws.ping,
+    servers: client.guilds.cache.size,
+    users: client.guilds.cache.reduce(
+      (total, guild) => total + (guild.memberCount || 0),
+      0
+    )
+  });
 });
 
 app.get("/health", (req, res) => {
