@@ -4,14 +4,14 @@
   "description": "Nexora Discord Bot Backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
-  "deploy": "node deploy-commands.js"
- },
+    "start": "node server.js",
+    "deploy": "node deploy-commands.js"
+  },
   "dependencies": {
     "discord.js": "^14.22.1",
     "dotenv": "^17.2.1",
     "express": "^4.21.2",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
     "mongoose": "^8.15.1"
   }
 }
