@@ -1,47 +1,31 @@
-const API = "https://YOUR-RENDER-URL.onrender.com";
+const API = "https://nexora-dashboard-klgw.onrender.com/health";
 
-async function loadStatus() {
+async function updateStatus() {
   try {
-    const res = await fetch(`${API}/health`);
+    const res = await fetch(API);
     const data = await res.json();
 
-    if (document.getElementById("status")) {
-      document.getElementById("status").textContent = data.status || "Online";
-    }
+    document.getElementById("servers").textContent = data.servers;
+    document.getElementById("users").textContent = data.users;
+    document.getElementById("ping").textContent = data.ping + "ms";
+    document.getElementById("botstatus").textContent = data.status;
 
-    if (document.getElementById("ping")) {
-      document.getElementById("ping").textContent =
-        (data.ping ?? "--") + " ms";
-    }
+    const serverCount = document.getElementById("serverCount");
+    if (serverCount) serverCount.textContent = data.servers;
 
-    if (document.getElementById("servers")) {
-      document.getElementById("servers").textContent =
-        data.servers ?? "--";
-    }
+    const memberCount = document.getElementById("memberCount");
+    if (memberCount) memberCount.textContent = data.users;
 
-    if (document.getElementById("users")) {
-      document.getElementById("users").textContent =
-        data.users ?? "--";
-    }
+    const dashboardPing = document.getElementById("dashboardPing");
+    if (dashboardPing) dashboardPing.textContent = data.ping + "ms";
 
-    if (document.getElementById("serverCount")) {
-      document.getElementById("serverCount").textContent =
-        data.servers ?? "--";
-    }
-
-    if (document.getElementById("memberCount")) {
-      document.getElementById("memberCount").textContent =
-        data.users ?? "--";
-    }
+    const dashboardStatus = document.getElementById("dashboardStatus");
+    if (dashboardStatus) dashboardStatus.textContent = data.status;
 
   } catch (err) {
-    console.error("API Error:", err);
-
-    if (document.getElementById("status")) {
-      document.getElementById("status").textContent = "Offline";
-    }
+    console.error("Dashboard Error:", err);
   }
 }
 
-loadStatus();
-setInterval(loadStatus, 10000);
+updateStatus();
+setInterval(updateStatus, 10000);
