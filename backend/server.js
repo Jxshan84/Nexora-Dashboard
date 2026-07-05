@@ -1,38 +1,43 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
+const { Client, GatewayIntentBits } = require("discord.js");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+app.use(express.json());
 
-let botStatus = {
-  online: true,
-  servers: 5,
-  ping: 120
-};
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds
+  ]
+});
 
+// Dashboard Health Check
 app.get("/", (req, res) => {
-  res.send("API Running");
+  res.send("👑 Nexora Backend is Running!");
 });
 
-app.get("/api/status", (req, res) => {
-  res.json(botStatus);
+app.get("/health", (req, res) => {
+  res.json({
+    status: "online",
+    bot: client.user ? client.user.tag : "Starting..."
+  });
 });
+
+// Discord Bot Ready
+client.once("ready", () => {
+  console.log(`✅ Logged in as ${client.user.tag}`);
+});
+
+// Login Bot
+client.login(process.env.TOKEN);
+
+// Start Server
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
-{
-  "name": "nexora-backend",
-  "version": "1.0.0",
-  "description": "Backend API for Nexora Dashboard",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.21.2"
-  }
-}
