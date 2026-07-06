@@ -8,20 +8,49 @@ const RedeemCode = require("../../models/RedeemCode");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("createcode")
-    .setDescription("Create a Premium Gems redeem code")
+    .setDescription("Create a redeem code")
 
     .addStringOption(option =>
       option
         .setName("code")
-        .setDescription("Redeem Code")
+        .setDescription("Redeem code")
         .setRequired(true)
+    )
+
+    .addStringOption(option =>
+      option
+        .setName("rewardtype")
+        .setDescription("Reward Type")
+        .setRequired(true)
+        .addChoices(
+          { name: "Coins", value: "coins" },
+          { name: "Gems", value: "gems" },
+          { name: "Premium Gems", value: "premiumgems" },
+          { name: "XP", value: "xp" },
+          { name: "Item", value: "item" },
+          { name: "Role", value: "role" }
+        )
     )
 
     .addIntegerOption(option =>
       option
-        .setName("reward")
-        .setDescription("Premium Gems Reward")
-        .setRequired(true)
+        .setName("amount")
+        .setDescription("Reward Amount")
+        .setRequired(false)
+    )
+
+    .addStringOption(option =>
+      option
+        .setName("item")
+        .setDescription("Item Name")
+        .setRequired(false)
+    )
+
+    .addRoleOption(option =>
+      option
+        .setName("role")
+        .setDescription("Discord Role")
+        .setRequired(false)
     )
 
     .addIntegerOption(option =>
@@ -31,26 +60,37 @@ module.exports = {
         .setRequired(true)
     )
 
+    .addStringOption(option =>
+      option
+        .setName("expiry")
+        .setDescription("Example: 1h, 12h, 7d, 30d, never")
+        .setRequired(true)
+    )
+
     .addIntegerOption(option =>
       option
-        .setName("days")
-        .setDescription("Expiry in Days")
-        .setRequired(true)
+        .setName("maxredeemperuser")
+        .setDescription("How many times one user can redeem")
+        .setRequired(false)
     ),
-
   async execute(interaction) {
 
     if (interaction.user.id !== process.env.OWNER_ID) {
       return interaction.reply({
-        content: "❌ Only Bot Owner can create redeem codes.",
+        content: "❌ Only the bot owner can create redeem codes.",
         ephemeral: true
       });
     }
 
     const code = interaction.options.getString("code").toUpperCase();
-    const reward = interaction.options.getInteger("reward");
+    const rewardType = interaction.options.getString("rewardtype");
+    const amount = interaction.options.getInteger("amount") || 0;
+    const itemName = interaction.options.getString("item");
+    const role = interaction.options.getRole("role");
     const uses = interaction.options.getInteger("uses");
-    const days = interaction.options.getInteger("days");
+    const expiry = interaction.options.getString("expiry").toLowerCase();
+    const maxRedeemPerUser =
+      interaction.options.getInteger("maxredeemperuser") || 1;
 
     const exists = await RedeemCode.findOne({ code });
 
@@ -61,14 +101,40 @@ module.exports = {
       });
     }
 
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + days);
+    let expiresAt = null;
+
+    if (expiry !== "never") {
+      const match = expiry.match(/^(\d+)([hd])$/);
+
+      if (!match) {
+        return interaction.reply({
+          content: "❌ Expiry must be like 1h, 12h, 7d or never.",
+          ephemeral: true
+        });
+      }
+
+      const value = Number(match[1]);
+      const unit = match[2];
+
+      expiresAt = new Date();
+
+      if (unit === "h") {
+        expiresAt.setHours(expiresAt.getHours() + value);
+      } else {
+        expiresAt.setDate(expiresAt.getDate() + value);
+      }
+    }
 
     await RedeemCode.create({
       code,
-      reward,
+      rewardType,
+      amount,
+      itemName,
+      roleId: role ? role.id : null,
       uses,
+      used: 0,
       expiresAt,
+      maxRedeemPerUser,
       createdBy: interaction.user.id
     });
 
@@ -76,24 +142,15 @@ module.exports = {
       .setColor("Green")
       .setTitle("🎁 Redeem Code Created")
       .addFields(
+        { name: "Code", value: code, inline: true },
+        { name: "Reward Type", value: rewardType, inline: true },
+        { name: "Amount", value: `${amount}`, inline: true },
+        { name: "Uses", value: `${uses}`, inline: true },
+        { name: "Expiry", value: expiry, inline: true },
         {
-          name: "Code",
-          value: code,
+          name: "Max Redeem / User",
+          value: `${maxRedeemPerUser}`,
           inline: true
-        },
-        {
-          name: "Reward",
-          value: `${reward} 💎`,
-          inline: true
-        },
-        {
-          name: "Uses",
-          value: `${uses}`,
-          inline: true
-        },
-        {
-          name: "Expires",
-          value: `${days} Day(s)`
         }
       )
       .setTimestamp();
@@ -103,4 +160,5 @@ module.exports = {
     });
 
   }
+
 };
