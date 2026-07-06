@@ -19,3 +19,19 @@ async function loadDashboard() {
 
 loadDashboard();
 setInterval(loadDashboard, 5000);
+function updateUptime() {
+  const start = Date.now();
+
+  setInterval(() => {
+    const sec = Math.floor((Date.now() - start) / 1000);
+
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+
+    document.getElementById("uptime").textContent =
+      `${h}h ${m}m ${s}s`;
+  }, 1000);
+}
+
+updateUptime();
