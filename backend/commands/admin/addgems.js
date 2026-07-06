@@ -105,3 +105,22 @@ module.exports = {
 
   }
 };
+const logChannel = interaction.client.channels.cache.get(
+  process.env.GEMS_LOG_CHANNEL_ID
+);
+
+if (logChannel) {
+  const logEmbed = new EmbedBuilder()
+    .setColor("Gold")
+    .setTitle("💎 Premium Gems Transaction")
+    .addFields(
+      { name: "👤 User", value: `${target}`, inline: true },
+      { name: "🛡️ Manager", value: `${interaction.user}`, inline: true },
+      { name: "➕ Added", value: `${amount} 💎`, inline: true },
+      { name: "💰 New Balance", value: `${user.premiumGems} 💎`, inline: true },
+      { name: "📝 Reason", value: reason }
+    )
+    .setTimestamp();
+
+  await logChannel.send({ embeds: [logEmbed] });
+}
