@@ -74,3 +74,25 @@ async function loadUser() {
 }
 
 loadUser();
+const buttons = document.querySelectorAll("[data-page]");
+const pages = document.querySelectorAll(".page-section");
+
+buttons.forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    pages.forEach(page => {
+      page.classList.remove("active-page");
+    });
+
+    const page = document.getElementById(
+      button.dataset.page + "-page"
+    );
+
+    if (page) {
+      page.classList.add("active-page");
+    }
+
+  });
+
+});
