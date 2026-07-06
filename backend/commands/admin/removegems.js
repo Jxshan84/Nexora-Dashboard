@@ -30,7 +30,8 @@ module.exports = {
 
     const target = interaction.options.getUser("user");
     const amount = interaction.options.getInteger("amount");
-    const reason = interaction.options.getString("reason") || "No reason provided";
+    const reason =
+      interaction.options.getString("reason") || "No reason provided";
 
     if (amount <= 0) {
       return interaction.reply({
@@ -64,28 +65,31 @@ module.exports = {
         { name: "Balance", value: `${user.premiumGems} 💎`, inline: true },
         { name: "Reason", value: reason }
       )
-      .setFooter({ text: `Removed by ${interaction.user.tag}` })
+      .setFooter({
+        text: `Removed by ${interaction.user.tag}`
+      })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
+
+    const logChannel = interaction.client.channels.cache.get(
+      process.env.GEMS_LOG_CHANNEL_ID
+    );
+
+    if (logChannel) {
+      const logEmbed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("💎 Premium Gems Transaction")
+        .addFields(
+          { name: "👤 User", value: `${target}`, inline: true },
+          { name: "🛡️ Manager", value: `${interaction.user}`, inline: true },
+          { name: "➖ Removed", value: `${amount} 💎`, inline: true },
+          { name: "💰 New Balance", value: `${user.premiumGems} 💎`, inline: true },
+          { name: "📝 Reason", value: reason }
+        )
+        .setTimestamp();
+
+      await logChannel.send({ embeds: [logEmbed] });
+    }
   }
 };
-const logChannel = interaction.client.channels.cache.get(
-  process.env.GEMS_LOG_CHANNEL_ID
-);
-
-if (logChannel) {
-  const logEmbed = new EmbedBuilder()
-    .setColor("Red")
-    .setTitle("💎 Premium Gems Transaction")
-    .addFields(
-      { name: "👤 User", value: `${target}`, inline: true },
-      { name: "🛡️ Manager", value: `${interaction.user}`, inline: true },
-      { name: "➖ Removed", value: `${amount} 💎`, inline: true },
-      { name: "💰 New Balance", value: `${user.premiumGems} 💎`, inline: true },
-      { name: "📝 Reason", value: reason }
-    )
-    .setTimestamp();
-
-  await logChannel.send({ embeds: [logEmbed] });
-}
