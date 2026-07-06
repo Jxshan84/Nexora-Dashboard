@@ -77,6 +77,8 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ MongoDB Error:", err));
 
+app.use("/api/dashboard", require("./routes/dashboard")(client));
+
 app.get("/health", (req, res) => {
   res.json({
     status: client.isReady() ? "Online" : "Offline",
