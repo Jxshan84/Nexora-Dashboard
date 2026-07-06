@@ -1,3 +1,4 @@
+const GuildSettings = require("../../models/GuildSettings");
 const {
   SlashCommandBuilder,
   PermissionFlagsBits,
