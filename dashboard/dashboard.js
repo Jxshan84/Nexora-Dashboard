@@ -1,17 +1,3 @@
-async function requireLogin() {
-  try {
-    const res = await fetch("/api/user", { credentials: "include" });
-
-    if (res.status === 401) {
-      window.location.href = "/auth/discord";
-      return;
-    }
-  } catch (err) {
-    window.location.href = "/auth/discord";
-  }
-}
-
-requireLogin();
 const API = "/api/dashboard/stats";
 
 async function loadDashboard() {
@@ -19,81 +5,40 @@ async function loadDashboard() {
     const res = await fetch(API);
     const data = await res.json();
 
-document.getElementById("servers").textContent = data.bot.servers;
-document.getElementById("users").textContent = data.bot.users;
-document.getElementById("ping").textContent = data.bot.ping + " ms";
-document.getElementById("status").textContent = "🟢 Online";
-document.getElementById("commands").textContent = data.bot.commands;
-document.getElementById("database").textContent = "Connected";
-
+    document.getElementById("servers").textContent = data.bot?.servers ?? "0";
+    document.getElementById("users").textContent = data.bot?.users ?? "0";
+    document.getElementById("ping").textContent = (data.bot?.ping ?? "0") + " ms";
+    document.getElementById("status").textContent = "Online";
+    document.getElementById("commands").textContent = data.bot?.commands ?? "0";
+    document.getElementById("database").textContent = "Connected";
   } catch (err) {
-    console.error("Dashboard Error:", err);
-
     document.getElementById("status").textContent = "Offline";
     document.getElementById("database").textContent = "Error";
   }
 }
 
-function updateUptime() {
-  const start = Date.now();
-
+function startUptime() {
+  let sec = 0;
   setInterval(() => {
-    const sec = Math.floor((Date.now() - start) / 1000);
+    sec++;
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
     const s = sec % 60;
-
     document.getElementById("uptime").textContent = `${h}h ${m}m ${s}s`;
   }, 1000);
 }
 
-loadDashboard();
-updateUptime();
-
-setInterval(loadDashboard, 5000);
-async function loadUser() {
-  try {
-    const res = await fetch("/api/user", {
-      credentials: "include"
-    });
-
-    const user = await res.json();
-
-    if (!user.loggedIn) return;
-
-    const profileName = document.querySelector(".profile span");
-    const profileImg = document.querySelector(".profile img");
-
-    profileName.textContent = user.username;
-
-    if (user.avatar) {
-      profileImg.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
-    }
-  } catch (err) {
-    console.error("User Load Error:", err);
-  }
-}
-
-loadUser();
-const buttons = document.querySelectorAll("[data-page]");
-const pages = document.querySelectorAll(".page-section");
-
-buttons.forEach(button => {
-
+document.querySelectorAll("[data-page]").forEach(button => {
   button.addEventListener("click", () => {
-
-    pages.forEach(page => {
+    document.querySelectorAll(".page-section").forEach(page => {
       page.classList.remove("active-page");
     });
 
-    const page = document.getElementById(
-      button.dataset.page + "-page"
-    );
-
-    if (page) {
-      page.classList.add("active-page");
-    }
-
+    const page = document.getElementById(`${button.dataset.page}-page`);
+    if (page) page.classList.add("active-page");
   });
-
 });
+
+loadDashboard();
+startUptime();
+setInterval(loadDashboard, 5000);
