@@ -1,16 +1,13 @@
+const { SlashCommandBuilder } = require("discord.js");
+
 module.exports = {
-  data: {
-    name: "addgems",
-    toJSON() {
-      return {
-        name: "addgems",
-        description: "Coming soon"
-      };
-    }
-  },
+  data: new SlashCommandBuilder()
+    .setName("removegems")
+    .setDescription("Remove Premium Gems from a user"),
+
   async execute(interaction) {
     await interaction.reply({
-      content: "💎 Add Gems command coming soon.",
+      content: "💎 Remove Gems command coming soon.",
       ephemeral: true
     });
   }
