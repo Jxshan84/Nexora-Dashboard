@@ -36,3 +36,27 @@ loadDashboard();
 updateUptime();
 
 setInterval(loadDashboard, 5000);
+async function loadUser() {
+  try {
+    const res = await fetch("/api/user", {
+      credentials: "include"
+    });
+
+    const user = await res.json();
+
+    if (!user.loggedIn) return;
+
+    const profileName = document.querySelector(".profile span");
+    const profileImg = document.querySelector(".profile img");
+
+    profileName.textContent = user.username;
+
+    if (user.avatar) {
+      profileImg.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+    }
+  } catch (err) {
+    console.error("User Load Error:", err);
+  }
+}
+
+loadUser();
