@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema({
   type: Number,
   default: 0
 },
-isCurrencyManager: {
+  isCurrencyManager: {
   type: Boolean,
   default: false
 }
