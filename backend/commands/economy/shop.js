@@ -1,58 +1,55 @@
-const mongoose = require("mongoose");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder
+} = require("discord.js");
 
-const shopItemSchema = new mongoose.Schema({
+const ShopItem = require("../../models/ShopItem");
 
-  name: {
-    type: String,
-    required: true,
-    unique: true
-  },
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName("shop")
+    .setDescription("View the global Rudra shop"),
 
-  description: {
-    type: String,
-    default: "No description"
-  },
+  async execute(interaction) {
 
-  price: {
-    type: Number,
-    required: true
-  },
+    const items = await ShopItem.find({
+      enabled: true
+    }).sort({ category: 1, price: 1 });
 
-  currency: {
-    type: String,
-    enum: ["coins", "gems", "premiumGems"],
-    default: "coins"
-  },
+    if (!items.length) {
+      return interaction.reply({
+        content: "🛒 The shop is currently empty.",
+        ephemeral: true
+      });
+    }
 
-  roleId: {
-    type: String,
-    default: null
-  },
+    const description = items.map((item, index) => {
 
-  image: {
-    type: String,
-    default: null
-  },
+      const emoji =
+        item.currency === "coins"
+          ? "🪙"
+          : item.currency === "gems"
+          ? "💎"
+          : "👑";
 
-  stock: {
-    type: Number,
-    default: -1
-  },
+      return `**${index + 1}. ${item.name}**
+📂 ${item.category}
+💰 ${item.price} ${emoji}
+📝 ${item.description}`;
+    }).join("\n\n");
 
-  category: {
-    type: String,
-    default: "General"
-  },
+    const embed = new EmbedBuilder()
+      .setColor("Blurple")
+      .setTitle("🛒 Rudra Global Shop")
+      .setDescription(description)
+      .setFooter({
+        text: `Total Items: ${items.length}`
+      })
+      .setTimestamp();
 
-  enabled: {
-    type: Boolean,
-    default: true
+    await interaction.reply({
+      embeds: [embed]
+    });
+
   }
-
-}, {
-  timestamps: true
-});
-
-module.exports =
-  mongoose.models.ShopItem ||
-  mongoose.model("ShopItem", shopItemSchema);
+};
