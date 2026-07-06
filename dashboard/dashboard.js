@@ -12,7 +12,7 @@ async function requireLogin() {
 }
 
 requireLogin();
-const API = "https://nexora-dashboard-klgw.onrender.com/health";
+const API = "/api/dashboard/stats";
 
 async function loadDashboard() {
   try {
