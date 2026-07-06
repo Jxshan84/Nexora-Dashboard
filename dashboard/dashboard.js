@@ -19,12 +19,13 @@ async function loadDashboard() {
     const res = await fetch(API);
     const data = await res.json();
 
-    document.getElementById("servers").textContent = data.servers ?? "0";
-    document.getElementById("users").textContent = data.users ?? "0";
-    document.getElementById("ping").textContent = (data.ping ?? "0") + " ms";
-    document.getElementById("status").textContent = data.status ?? "Offline";
+document.getElementById("servers").textContent = data.bot.servers;
+document.getElementById("users").textContent = data.bot.users;
+document.getElementById("ping").textContent = data.bot.ping + " ms";
+document.getElementById("status").textContent = "🟢 Online";
+document.getElementById("commands").textContent = data.bot.commands;
+document.getElementById("database").textContent = "Connected";
 
-    document.getElementById("database").textContent = "Connected";
   } catch (err) {
     console.error("Dashboard Error:", err);
 
