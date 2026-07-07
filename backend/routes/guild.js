@@ -21,13 +21,43 @@ module.exports = () => {
         success: true,
         settings
       });
-
     } catch (err) {
-      console.error(err);
-
       res.status(500).json({
         success: false,
-        message: "Internal Server Error"
+        message: "Server error"
+      });
+    }
+  });
+
+  router.post("/:guildId", async (req, res) => {
+    try {
+      const data = req.body;
+
+      const settings = await GuildSettings.findOneAndUpdate(
+        { guildId: req.params.guildId },
+        {
+          prefix: data.prefix,
+          modLogChannel: data.modLogChannel,
+          welcomeChannel: data.welcomeChannel,
+          leaveChannel: data.leaveChannel,
+          autoRole: data.autoRole,
+          gemsLogChannel: data.gemsLogChannel,
+          ticketCategory: data.ticketCategory,
+          automod: data.automod,
+          antiLink: data.antiLink,
+          isPremium: data.isPremium
+        },
+        { new: true, upsert: true }
+      );
+
+      res.json({
+        success: true,
+        settings
+      });
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: "Save failed"
       });
     }
   });
