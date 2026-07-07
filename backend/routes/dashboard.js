@@ -14,7 +14,7 @@ module.exports = (client) => {
         uptime: process.uptime(),
         servers: client.guilds.cache.size,
         users: client.guilds.cache.reduce(
-          (a, g) => a + (g.memberCount || 0),
+          (total, guild) => total + (guild.memberCount || 0),
           0
         ),
         commands: client.commands?.size || 0,
