@@ -83,7 +83,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.error("❌ MongoDB Error:", err));
 
 app.use("/api/dashboard", require("./routes/dashboard")(client));
-app.use("/api/guild", require("./routes/guild")());
+app.use("/api/guild", require("./routes/guild")(client));
 
 app.get("/health", (req, res) => {
   res.json({
