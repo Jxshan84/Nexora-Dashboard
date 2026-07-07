@@ -6,7 +6,6 @@ const GuildSettings = require("../models/GuildSettings");
 module.exports = (client) => {
 
   router.get("/:guildId/stats", async (req, res) => {
-
     try {
 
       const guild = client.guilds.cache.get(req.params.guildId);
@@ -30,7 +29,6 @@ module.exports = (client) => {
 
       res.json({
         success: true,
-
         guild: {
           id: guild.id,
           name: guild.name,
@@ -40,9 +38,7 @@ module.exports = (client) => {
           channels: guild.channels.cache.size,
           roles: guild.roles.cache.size
         },
-
         settings
-
       });
 
     } catch (err) {
@@ -55,7 +51,42 @@ module.exports = (client) => {
       });
 
     }
+  });
 
+  router.get("/:guildId/channels", async (req, res) => {
+    try {
+
+      const guild = client.guilds.cache.get(req.params.guildId);
+
+      if (!guild) {
+        return res.status(404).json({
+          success: false,
+          message: "Guild not found"
+        });
+      }
+
+      const channels = guild.channels.cache
+        .filter(ch => ch.type === 0)
+        .map(ch => ({
+          id: ch.id,
+          name: ch.name
+        }));
+
+      res.json({
+        success: true,
+        channels
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to load channels"
+      });
+
+    }
   });
 
   router.get("/:guildId", async (req, res) => {
@@ -98,5 +129,4 @@ module.exports = (client) => {
   });
 
   return router;
-
 };
