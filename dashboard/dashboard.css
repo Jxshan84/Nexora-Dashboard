@@ -365,3 +365,34 @@ opacity:1;
 transform:translateY(0);
 }
 }
+.page-section label{
+display:block;
+margin-top:15px;
+font-weight:600;
+}
+
+.page-section input{
+width:100%;
+padding:12px;
+margin-top:6px;
+border-radius:10px;
+border:none;
+background:#202225;
+color:#fff;
+}
+
+#saveSettings{
+margin-top:20px;
+padding:12px;
+width:100%;
+background:#5865F2;
+color:#fff;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-size:16px;
+}
+
+#saveSettings:hover{
+background:#4752c4;
+}
