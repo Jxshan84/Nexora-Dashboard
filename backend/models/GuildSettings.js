@@ -66,6 +66,11 @@ const guildSettingsSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+ 
+  antiBot: {
+    type: Boolean,
+    default: false
+  },
 
   antiInvite: {
     type: Boolean,
