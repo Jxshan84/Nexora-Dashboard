@@ -18,10 +18,15 @@ module.exports = (client) => {
         });
       }
 
-      const settings =
-        await GuildSettings.findOne({
+      let settings = await GuildSettings.findOne({
+        guildId: guild.id
+      });
+
+      if (!settings) {
+        settings = await GuildSettings.create({
           guildId: guild.id
         });
+      }
 
       res.json({
         success: true,
@@ -29,41 +34,40 @@ module.exports = (client) => {
         guild: {
           id: guild.id,
           name: guild.name,
-          icon: guild.iconURL({
-            dynamic: true
-          }),
+          icon: guild.iconURL({ dynamic: true }),
           ownerId: guild.ownerId,
           members: guild.memberCount,
           channels: guild.channels.cache.size,
           roles: guild.roles.cache.size
         },
 
-        settings: settings || {}
+        settings
+
       });
 
     } catch (err) {
+
       console.error(err);
 
       res.status(500).json({
         success: false,
         message: "Internal Server Error"
       });
+
     }
 
   });
 
   router.get("/:guildId", async (req, res) => {
 
-    let settings =
-      await GuildSettings.findOne({
-        guildId: req.params.guildId
-      });
+    let settings = await GuildSettings.findOne({
+      guildId: req.params.guildId
+    });
 
     if (!settings) {
-      settings =
-        await GuildSettings.create({
-          guildId: req.params.guildId
-        });
+      settings = await GuildSettings.create({
+        guildId: req.params.guildId
+      });
     }
 
     res.json({
@@ -75,21 +79,16 @@ module.exports = (client) => {
 
   router.post("/:guildId", async (req, res) => {
 
-    const settings =
-      await GuildSettings.findOneAndUpdate(
-
-        {
-          guildId: req.params.guildId
-        },
-
-        req.body,
-
-        {
-          new: true,
-          upsert: true
-        }
-
-      );
+    const settings = await GuildSettings.findOneAndUpdate(
+      {
+        guildId: req.params.guildId
+      },
+      req.body,
+      {
+        new: true,
+        upsert: true
+      }
+    );
 
     res.json({
       success: true,
