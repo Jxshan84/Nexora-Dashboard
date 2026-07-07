@@ -3,64 +3,101 @@ const router = express.Router();
 
 const GuildSettings = require("../models/GuildSettings");
 
-module.exports = () => {
+module.exports = (client) => {
 
-  router.get("/:guildId", async (req, res) => {
+  router.get("/:guildId/stats", async (req, res) => {
+
     try {
-      let settings = await GuildSettings.findOne({
-        guildId: req.params.guildId
-      });
 
-      if (!settings) {
-        settings = await GuildSettings.create({
-          guildId: req.params.guildId
+      const guild = client.guilds.cache.get(req.params.guildId);
+
+      if (!guild) {
+        return res.status(404).json({
+          success: false,
+          message: "Guild not found"
         });
       }
 
+      const settings =
+        await GuildSettings.findOne({
+          guildId: guild.id
+        });
+
       res.json({
         success: true,
-        settings
+
+        guild: {
+          id: guild.id,
+          name: guild.name,
+          icon: guild.iconURL({
+            dynamic: true
+          }),
+          ownerId: guild.ownerId,
+          members: guild.memberCount,
+          channels: guild.channels.cache.size,
+          roles: guild.roles.cache.size
+        },
+
+        settings: settings || {}
       });
+
     } catch (err) {
+      console.error(err);
+
       res.status(500).json({
         success: false,
-        message: "Server error"
+        message: "Internal Server Error"
       });
     }
+
+  });
+
+  router.get("/:guildId", async (req, res) => {
+
+    let settings =
+      await GuildSettings.findOne({
+        guildId: req.params.guildId
+      });
+
+    if (!settings) {
+      settings =
+        await GuildSettings.create({
+          guildId: req.params.guildId
+        });
+    }
+
+    res.json({
+      success: true,
+      settings
+    });
+
   });
 
   router.post("/:guildId", async (req, res) => {
-    try {
-      const data = req.body;
 
-      const settings = await GuildSettings.findOneAndUpdate(
-        { guildId: req.params.guildId },
+    const settings =
+      await GuildSettings.findOneAndUpdate(
+
         {
-          prefix: data.prefix,
-          modLogChannel: data.modLogChannel,
-          welcomeChannel: data.welcomeChannel,
-          leaveChannel: data.leaveChannel,
-          autoRole: data.autoRole,
-          gemsLogChannel: data.gemsLogChannel,
-          ticketCategory: data.ticketCategory,
-          automod: data.automod,
-          antiLink: data.antiLink,
-          isPremium: data.isPremium
+          guildId: req.params.guildId
         },
-        { new: true, upsert: true }
+
+        req.body,
+
+        {
+          new: true,
+          upsert: true
+        }
+
       );
 
-      res.json({
-        success: true,
-        settings
-      });
-    } catch (err) {
-      res.status(500).json({
-        success: false,
-        message: "Save failed"
-      });
-    }
+    res.json({
+      success: true,
+      settings
+    });
+
   });
 
   return router;
+
 };
