@@ -1,79 +1,144 @@
 const API = "/api/dashboard/stats";
 
+async function requireLogin() {
+  try {
+    const res = await fetch("/api/user", {
+      credentials: "include"
+    });
+
+    if (res.status === 401) {
+      window.location.href = "/auth/discord";
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error(err);
+    window.location.href = "/auth/discord";
+    return false;
+  }
+}
+
 async function loadDashboard() {
   try {
     const res = await fetch(API);
     const data = await res.json();
 
-    document.getElementById("servers").textContent = data.bot?.servers ?? "0";
-    document.getElementById("users").textContent = data.bot?.users ?? "0";
-    document.getElementById("ping").textContent = (data.bot?.ping ?? "0") + " ms";
-    document.getElementById("status").textContent = "🟢 Online";
-    document.getElementById("commands").textContent = data.bot?.commands ?? "0";
-    document.getElementById("database").textContent = "Connected";
+    if (!data.success) return;
+
+    document.getElementById("servers").textContent = data.bot.servers;
+    document.getElementById("users").textContent = data.bot.users;
+    document.getElementById("ping").textContent = data.bot.ping + " ms";
+    document.getElementById("commands").textContent = data.bot.commands;
+
+    document.getElementById("status").textContent =
+      data.bot.status === "Online"
+        ? "🟢 Online"
+        : "🔴 Offline";
+
+    document.getElementById("database").textContent =
+      data.bot.status === "Online"
+        ? "Connected"
+        : "Disconnected";
+
+    const version = document.getElementById("version");
+    if (version) {
+      version.textContent = data.bot.node;
+    }
+
   } catch (err) {
+    console.error(err);
+
     document.getElementById("status").textContent = "🔴 Offline";
     document.getElementById("database").textContent = "Error";
   }
 }
 
 async function loadUser() {
+
   try {
-    const res = await fetch("/api/user", { credentials: "include" });
-    if (res.status === 401) {
-      window.location.href = "/auth/discord";
-      return;
-    }
+
+    const res = await fetch("/api/user", {
+      credentials: "include"
+    });
+
+    if (res.status === 401) return;
 
     const user = await res.json();
 
-    if (user.loggedIn) {
-      document.querySelector(".profile span").textContent = user.username;
+    if (!user.loggedIn) return;
 
-      if (user.avatar) {
-        document.querySelector(".profile img").src =
-          `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
-      }
+    document.querySelector(".profile span").textContent =
+      user.username;
+
+    if (user.avatar) {
+      document.querySelector(".profile img").src =
+        `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
     }
+
   } catch (err) {
-    console.error("User Error:", err);
+    console.error(err);
   }
+
 }
 
 async function loadServers() {
+
   try {
-    const res = await fetch("/api/guilds", { credentials: "include" });
+
+    const res = await fetch("/api/guilds", {
+      credentials: "include"
+    });
+
     const guilds = await res.json();
 
     const select = document.getElementById("serverSelect");
+
     if (!select) return;
 
     select.innerHTML = "";
 
-    if (!Array.isArray(guilds) || guilds.length === 0) {
-      select.innerHTML = `<option value="">No servers found</option>`;
-      return;
-    }
-
     guilds.forEach(guild => {
+
       const option = document.createElement("option");
+
       option.value = guild.id;
       option.textContent = guild.name;
+
       select.appendChild(option);
+
     });
 
-    const saved = localStorage.getItem("selectedGuild");
+    const saved =
+      localStorage.getItem("selectedGuild");
 
-    if (saved) {
+    if (saved && guilds.some(g => g.id === saved)) {
       select.value = saved;
-    } else {
-      localStorage.setItem("selectedGuild", select.value);
     }
 
-    loadGuildSettings(select.value);
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+async function loadGuildStats(guildId) {
+  if (!guildId) return;
+
+  try {
+    const res = await fetch(`/api/guild/${guildId}/stats`);
+    const data = await res.json();
+
+    if (!data.success) return;
+
+    setText("guildName", data.guild.name);
+    setText("guildMembers", data.guild.members);
+    setText("guildChannels", data.guild.channels);
+    setText("guildRoles", data.guild.roles);
 
   } catch (err) {
-    console.error("Server Load Error:", err);
+    console.error("Guild Stats Error:", err);
   }
 }
 
@@ -142,6 +207,7 @@ async function saveGuildSettings() {
     } else {
       alert("❌ Failed to save settings.");
     }
+
   } catch (err) {
     alert("❌ Save error.");
   }
@@ -157,48 +223,80 @@ function setValue(id, value) {
   if (el) el.value = value;
 }
 
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value ?? "";
+}
+
 function startUptime() {
-  let sec = 0;
-
   setInterval(() => {
-    sec++;
-
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = sec % 60;
-
     const uptime = document.getElementById("uptime");
-    if (uptime) uptime.textContent = `${h}h ${m}m ${s}s`;
+    if (!uptime) return;
+
+    const current = uptime.textContent;
+
+    if (current === "Loading..." || current === "") return;
+
   }, 1000);
 }
 
 document.querySelectorAll("[data-page]").forEach(button => {
+
   button.addEventListener("click", () => {
+
     document.querySelectorAll(".page-section").forEach(page => {
       page.classList.remove("active-page");
     });
 
     const page = document.getElementById(`${button.dataset.page}-page`);
-    if (page) page.classList.add("active-page");
+
+    if (page) {
+      page.classList.add("active-page");
+    }
+
   });
+
 });
 
 document.addEventListener("change", e => {
-  if (e.target.id === "serverSelect") {
-    localStorage.setItem("selectedGuild", e.target.value);
-    loadGuildSettings(e.target.value);
-  }
+
+  if (e.target.id !== "serverSelect") return;
+
+  localStorage.setItem("selectedGuild", e.target.value);
+
+  loadGuildStats(e.target.value);
+  loadGuildSettings(e.target.value);
+
 });
 
 document.addEventListener("click", e => {
+
   if (e.target.id === "saveSettings") {
     saveGuildSettings();
   }
+
 });
 
-loadDashboard();
-loadUser();
-loadServers();
-startUptime();
+(async () => {
 
-setInterval(loadDashboard, 5000);
+  const ok = await requireLogin();
+
+  if (!ok) return;
+
+  await loadDashboard();
+  await loadUser();
+  await loadServers();
+
+  const guildId = localStorage.getItem("selectedGuild");
+
+  if (guildId) {
+    await loadGuildStats(guildId);
+    await loadGuildSettings(guildId);
+  }
+
+  startUptime();
+
+  setInterval(loadDashboard, 5000);
+
+})();
+
