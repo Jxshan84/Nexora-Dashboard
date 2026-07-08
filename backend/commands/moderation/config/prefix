@@ -1,0 +1,52 @@
+const {
+  SlashCommandBuilder,
+  PermissionFlagsBits,
+  EmbedBuilder
+} = require("discord.js");
+
+const GuildSettings = require("../../models/GuildSettings");
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName("prefix")
+    .setDescription("Set or view server prefix.")
+    .addStringOption(option =>
+      option
+        .setName("set")
+        .setDescription("New prefix")
+        .setRequired(false)
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+
+  async execute(interaction) {
+    const newPrefix = interaction.options.getString("set");
+
+    let settings = await GuildSettings.findOne({
+      guildId: interaction.guild.id
+    });
+
+    if (!settings) {
+      settings = await GuildSettings.create({
+        guildId: interaction.guild.id
+      });
+    }
+
+    if (!newPrefix) {
+      return interaction.reply({
+        content: `📌 Current prefix is: \`${settings.prefix || "/"}\``,
+        ephemeral: true
+      });
+    }
+
+    settings.prefix = newPrefix;
+    await settings.save();
+
+    const embed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("✅ Prefix Updated")
+      .setDescription(`New prefix: \`${newPrefix}\``)
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [embed] });
+  }
+};
