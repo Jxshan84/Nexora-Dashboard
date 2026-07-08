@@ -69,7 +69,6 @@ if (fs.existsSync(commandsPath)) {
 
     for (const file of files) {
       const command = require(path.join(folderPath, file));
-
       if (!command.data || !command.execute) continue;
 
       client.commands.set(command.data.name, command);
@@ -92,10 +91,7 @@ app.get("/health", (req, res) => {
     bot: client.user?.tag || "Starting...",
     ping: client.ws.ping,
     servers: client.guilds.cache.size,
-    users: client.guilds.cache.reduce(
-      (a, g) => a + (g.memberCount || 0),
-      0
-    )
+    users: client.guilds.cache.reduce((a, g) => a + (g.memberCount || 0), 0)
   });
 });
 
@@ -116,6 +112,7 @@ app.get("/api/user", (req, res) => {
 
   res.json({
     loggedIn: true,
+    owner: req.user.id === process.env.OWNER_ID,
     id: req.user.id,
     username: req.user.username,
     discriminator: req.user.discriminator,
@@ -192,7 +189,7 @@ client.on("interactionCreate", async interaction => {
     }
   }
 });
-  
+
 client.login(process.env.TOKEN);
 
 const PORT = process.env.PORT || 3000;
