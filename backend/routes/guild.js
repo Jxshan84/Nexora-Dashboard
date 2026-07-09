@@ -140,14 +140,38 @@ module.exports = (client) => {
 
   router.post("/:guildId", async (req, res) => {
     try {
+      let prefixes = req.body.prefixes;
+
+      if (!Array.isArray(prefixes)) {
+        prefixes = req.body.prefix ? [req.body.prefix] : ["/"];
+      }
+
+      prefixes = prefixes
+        .map(p => String(p).trim())
+        .filter(Boolean);
+
+      prefixes = [...new Set(prefixes)];
+
+      if (prefixes.length === 0) {
+        prefixes = ["/"];
+      }
+
+      const defaultPrefix =
+        req.body.defaultPrefix && prefixes.includes(req.body.defaultPrefix)
+          ? req.body.defaultPrefix
+          : prefixes[0];
+
       const body = {
-        prefix: req.body.prefix || "/",
+        prefixes,
+        defaultPrefix,
+
         welcomeChannel: req.body.welcomeChannel || null,
         leaveChannel: req.body.leaveChannel || null,
         modLogChannel: req.body.modLogChannel || null,
         ticketCategory: req.body.ticketCategory || null,
         autoRole: req.body.autoRole || null,
         verificationRole: req.body.verifyRole || req.body.verificationRole || null,
+
         antiLink: req.body.antiLink === true,
         antiBot: req.body.antiBot === true,
         automod: req.body.automod === true
