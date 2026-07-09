@@ -62,6 +62,8 @@ const client = new Client({
 
 client.commands = new Collection();
 
+require("./events/reactionRole")(client);
+
 const commands = [];
 const commandsPath = path.join(__dirname, "commands");
 
