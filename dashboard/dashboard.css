@@ -677,3 +677,252 @@ grid-template-columns:1fr;
 }
 
 }
+/* ==============================
+   RUDRA MOBILE FIX - PART 1
+============================== */
+
+@media(max-width:900px){
+
+body{
+overflow:auto !important;
+height:auto !important;
+}
+
+.dashboard{
+display:block !important;
+height:auto !important;
+min-height:100vh !important;
+}
+
+.sidebar{
+width:100% !important;
+height:auto !important;
+position:relative !important;
+padding:12px !important;
+border-right:none !important;
+border-bottom:1px solid rgba(255,0,0,.25) !important;
+}
+
+.logo{
+margin-bottom:12px !important;
+}
+
+.logo-mark{
+width:38px !important;
+height:38px !important;
+font-size:20px !important;
+}
+
+.logo h2{
+font-size:22px !important;
+letter-spacing:3px !important;
+}
+
+.sidebar nav{
+display:grid !important;
+grid-template-columns:repeat(3,1fr) !important;
+gap:8px !important;
+}
+
+.sidebar button{
+padding:9px 6px !important;
+font-size:11px !important;
+min-height:48px !important;
+border-radius:10px !important;
+text-align:center !important;
+line-height:1.2 !important;
+}
+
+.sidebar button i{
+display:block !important;
+width:100% !important;
+margin-bottom:4px !important;
+font-size:15px !important;
+}
+
+.sidebar button:hover{
+transform:none !important;
+}
+
+.content{
+padding:14px !important;
+overflow:visible !important;
+}
+
+header{
+display:block !important;
+margin-bottom:16px !important;
+}
+
+header h1{
+font-size:24px !important;
+}
+
+.sub-title{
+font-size:12px !important;
+margin-top:4px !important;
+}
+
+.profile{
+margin-top:12px !important;
+width:max-content !important;
+padding:6px 10px !important;
+}
+
+.profile img{
+width:36px !important;
+height:36px !important;
+}
+
+.server-select{
+margin-bottom:16px !important;
+}
+
+.server-select select{
+max-width:100% !important;
+}
+
+}
+/* ==============================
+   RUDRA MOBILE FIX - PART 2
+============================== */
+
+@media (max-width:900px){
+
+#pages{
+width:100% !important;
+}
+
+.page{
+padding:0 !important;
+margin:0 !important;
+}
+
+.cards{
+display:grid !important;
+grid-template-columns:1fr !important;
+gap:12px !important;
+margin-top:12px !important;
+}
+
+.card{
+padding:16px !important;
+border-radius:14px !important;
+}
+
+.card h1{
+font-size:26px !important;
+}
+
+.card h3{
+font-size:14px !important;
+}
+
+.settings-grid{
+display:grid !important;
+grid-template-columns:1fr !important;
+gap:12px !important;
+}
+
+.setting{
+padding:14px !important;
+}
+
+.setting label{
+font-size:13px !important;
+}
+
+input,
+select,
+textarea{
+font-size:14px !important;
+padding:12px !important;
+}
+
+button{
+width:100% !important;
+font-size:14px !important;
+padding:12px !important;
+}
+
+.reaction-layout{
+display:grid !important;
+grid-template-columns:1fr !important;
+gap:14px !important;
+}
+
+.reaction-panel{
+padding:16px !important;
+border-radius:14px !important;
+}
+
+.embed-preview{
+padding:14px !important;
+}
+
+.preview-row{
+font-size:14px !important;
+}
+
+.server-list{
+display:grid !important;
+grid-template-columns:1fr !important;
+gap:12px !important;
+}
+
+.server-item{
+padding:14px !important;
+}
+
+.owner-page .cards{
+grid-template-columns:1fr !important;
+}
+
+.loader-core h2{
+font-size:24px !important;
+}
+
+.loader-bar{
+width:220px !important;
+}
+
+}
+
+/* Small phones */
+
+@media (max-width:480px){
+
+.sidebar nav{
+grid-template-columns:repeat(2,1fr) !important;
+}
+
+.logo h2{
+font-size:18px !important;
+}
+
+header h1{
+font-size:20px !important;
+}
+
+.card h1{
+font-size:22px !important;
+}
+
+button{
+font-size:13px !important;
+}
+
+.loader-shield{
+width:90px !important;
+height:90px !important;
+}
+
+.loader-shield span{
+font-size:46px !important;
+}
+
+.loader-core h2{
+font-size:20px !important;
+}
+
+}
