@@ -7,7 +7,12 @@ const guildSettingsSchema = new mongoose.Schema({
     unique: true
   },
 
-  prefix: {
+  prefixes: {
+    type: [String],
+    default: ["/"]
+  },
+
+  defaultPrefix: {
     type: String,
     default: "/"
   },
@@ -42,55 +47,26 @@ const guildSettingsSchema = new mongoose.Schema({
     default: null
   },
 
-  gemsLogChannel: {
-    type: String,
-    default: null
-  },
-
   ticketCategory: {
     type: String,
     default: null
-  },
-
-  automod: {
-    type: Boolean,
-    default: false
-  },
-
-  antiSpam: {
-    type: Boolean,
-    default: false
   },
 
   antiLink: {
     type: Boolean,
     default: false
   },
- 
+
   antiBot: {
     type: Boolean,
     default: false
   },
 
-  antiInvite: {
+  automod: {
     type: Boolean,
     default: false
-  },
-
-  antiRaid: {
-    type: Boolean,
-    default: false
-  },
-
-  autoRespondEnabled: {
-    type: Boolean,
-    default: true
-  },
-
-  autoReactEnabled: {
-    type: Boolean,
-    default: true
   }
+
 }, {
   timestamps: true
 });
