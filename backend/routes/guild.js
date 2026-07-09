@@ -7,7 +7,6 @@ module.exports = (client) => {
 
   router.get("/:guildId/stats", async (req, res) => {
     try {
-
       const guild = client.guilds.cache.get(req.params.guildId);
 
       if (!guild) {
@@ -17,14 +16,10 @@ module.exports = (client) => {
         });
       }
 
-      let settings = await GuildSettings.findOne({
-        guildId: guild.id
-      });
+      let settings = await GuildSettings.findOne({ guildId: guild.id });
 
       if (!settings) {
-        settings = await GuildSettings.create({
-          guildId: guild.id
-        });
+        settings = await GuildSettings.create({ guildId: guild.id });
       }
 
       res.json({
@@ -42,20 +37,16 @@ module.exports = (client) => {
       });
 
     } catch (err) {
-
       console.error(err);
-
       res.status(500).json({
         success: false,
         message: "Internal Server Error"
       });
-
     }
   });
 
   router.get("/:guildId/channels", async (req, res) => {
     try {
-
       const guild = client.guilds.cache.get(req.params.guildId);
 
       if (!guild) {
@@ -78,54 +69,108 @@ module.exports = (client) => {
       });
 
     } catch (err) {
-
       console.error(err);
-
       res.status(500).json({
         success: false,
         message: "Failed to load channels"
       });
+    }
+  });
 
+  router.get("/:guildId/roles", async (req, res) => {
+    try {
+      const guild = client.guilds.cache.get(req.params.guildId);
+
+      if (!guild) {
+        return res.status(404).json({
+          success: false,
+          message: "Guild not found"
+        });
+      }
+
+      const roles = guild.roles.cache
+        .filter(role => role.name !== "@everyone")
+        .sort((a, b) => b.position - a.position)
+        .map(role => ({
+          id: role.id,
+          name: role.name,
+          color: role.hexColor,
+          position: role.position
+        }));
+
+      res.json({
+        success: true,
+        roles
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to load roles"
+      });
     }
   });
 
   router.get("/:guildId", async (req, res) => {
-
-    let settings = await GuildSettings.findOne({
-      guildId: req.params.guildId
-    });
-
-    if (!settings) {
-      settings = await GuildSettings.create({
+    try {
+      let settings = await GuildSettings.findOne({
         guildId: req.params.guildId
       });
+
+      if (!settings) {
+        settings = await GuildSettings.create({
+          guildId: req.params.guildId
+        });
+      }
+
+      res.json({
+        success: true,
+        settings
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to load settings"
+      });
     }
-
-    res.json({
-      success: true,
-      settings
-    });
-
   });
 
   router.post("/:guildId", async (req, res) => {
+    try {
+      const body = {
+        prefix: req.body.prefix || "/",
+        welcomeChannel: req.body.welcomeChannel || null,
+        leaveChannel: req.body.leaveChannel || null,
+        modLogChannel: req.body.modLogChannel || null,
+        ticketCategory: req.body.ticketCategory || null,
+        autoRole: req.body.autoRole || null,
+        verificationRole: req.body.verifyRole || req.body.verificationRole || null,
+        antiLink: req.body.antiLink === true,
+        antiBot: req.body.antiBot === true,
+        automod: req.body.automod === true
+      };
 
-    const settings = await GuildSettings.findOneAndUpdate(
-      {
-        guildId: req.params.guildId
-      },
-      req.body,
-      {
-        new: true,
-        upsert: true
-      }
-    );
+      const settings = await GuildSettings.findOneAndUpdate(
+        { guildId: req.params.guildId },
+        body,
+        { new: true, upsert: true }
+      );
 
-    res.json({
-      success: true,
-      settings
-    });
+      res.json({
+        success: true,
+        settings
+      });
 
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to save settings"
+      });
+    }
   });
 
   return router;
