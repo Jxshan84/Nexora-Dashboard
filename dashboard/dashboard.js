@@ -50,6 +50,7 @@ window.addEventListener("load", async () => {
   }, 2600);
 
   await loadDashboard();
+
   const logged = await loadUser();
   if (!logged) return;
 
@@ -98,7 +99,8 @@ async function loadUser() {
 
     const avatar = document.getElementById("avatar");
     if (avatar && user.avatar) {
-      avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+      avatar.src =
+        `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
     }
 
     if (user.owner) {
@@ -185,6 +187,7 @@ async function loadGuildSettings(guildId) {
 
     const s = data.settings || {};
 
+    setValue("prefix", s.prefix || "/");
     setValue("welcomeChannel", s.welcomeChannel || "");
     setValue("leaveChannel", s.leaveChannel || "");
     setValue("modLogChannel", s.modLogChannel || "");
@@ -207,6 +210,7 @@ async function saveSettings() {
   }
 
   const body = {
+    prefix: getValue("prefix") || "/",
     welcomeChannel: getValue("welcomeChannel"),
     leaveChannel: getValue("leaveChannel"),
     modLogChannel: getValue("modLogChannel"),
