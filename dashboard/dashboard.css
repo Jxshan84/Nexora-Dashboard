@@ -608,3 +608,1520 @@ font-size:24px;
 }
 
 }
+/* =========================
+RUDRA DASHBOARD CSS
+PART 5
+========================= */
+
+button,
+input,
+select,
+textarea{
+
+transition:.25s ease;
+
+}
+
+button:active{
+
+transform:scale(.96);
+
+}
+
+input::placeholder,
+textarea::placeholder{
+
+color:#7f7f7f;
+
+}
+
+.setting input:hover,
+.setting textarea:hover,
+.setting select:hover{
+
+border-color:rgba(255,0,0,.35);
+
+}
+
+.server-item h3{
+
+font-size:18px;
+
+margin-bottom:10px;
+
+}
+
+.server-item p{
+
+color:#b0b0b0;
+
+margin-bottom:8px;
+
+}
+
+.server-item button{
+
+margin-top:12px;
+
+width:100%;
+
+height:45px;
+
+border:none;
+
+border-radius:12px;
+
+background:#c20000;
+
+color:#fff;
+
+font-weight:700;
+
+cursor:pointer;
+
+}
+
+.server-item button:hover{
+
+background:#ff1d1d;
+
+box-shadow:0 0 20px rgba(255,0,0,.35);
+
+}
+
+.panel,
+.card,
+.setting{
+
+backdrop-filter:blur(15px);
+
+}
+
+.card::before{
+
+content:"";
+
+position:absolute;
+
+inset:0;
+
+border-radius:18px;
+
+background:linear-gradient(
+
+135deg,
+
+transparent,
+
+rgba(255,255,255,.03)
+
+);
+
+pointer-events:none;
+
+}
+
+.card{
+
+position:relative;
+
+overflow:hidden;
+
+}
+
+.sidebar-menu button::before{
+
+content:"";
+
+position:absolute;
+
+left:0;
+
+top:0;
+
+width:4px;
+
+height:100%;
+
+background:#ff2d2d;
+
+transform:scaleY(0);
+
+transition:.25s;
+
+}
+
+.sidebar-menu button{
+
+position:relative;
+
+overflow:hidden;
+
+}
+
+.sidebar-menu button.active::before,
+.sidebar-menu button:hover::before{
+
+transform:scaleY(1);
+
+}
+/* =========================
+RUDRA DASHBOARD CSS
+PART 6
+========================= */
+
+.variables{
+
+display:flex;
+
+flex-wrap:wrap;
+
+gap:10px;
+
+padding:15px;
+
+background:#1a1a1a;
+
+border-radius:14px;
+
+}
+
+.variables span{
+
+padding:8px 14px;
+
+border-radius:10px;
+
+background:#252525;
+
+font-size:13px;
+
+cursor:pointer;
+
+transition:.25s;
+
+}
+
+.variables span:hover{
+
+background:#ff2d2d;
+
+transform:translateY(-3px);
+
+}
+
+.owner-page .card{
+
+min-height:140px;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+}
+
+.owner-page textarea{
+
+min-height:180px;
+
+}
+
+#reactionRoleList{
+
+max-height:500px;
+
+overflow-y:auto;
+
+padding-right:6px;
+
+}
+
+.sidebar-menu button .badge{
+
+margin-left:auto;
+
+padding:4px 8px;
+
+border-radius:8px;
+
+font-size:11px;
+
+font-weight:700;
+
+background:#ff2d2d;
+
+}
+
+.card h1{
+
+background:linear-gradient(
+
+90deg,
+
+#ffffff,
+
+#ff2d2d
+
+);
+
+-webkit-background-clip:text;
+
+-webkit-text-fill-color:transparent;
+
+}
+
+.sidebar-logo{
+
+user-select:none;
+
+pointer-events:none;
+
+}
+
+.content{
+
+scroll-behavior:smooth;
+
+}
+
+.setting textarea{
+
+line-height:1.7;
+
+}
+
+.panel:hover,
+.setting:hover{
+
+box-shadow:0 0 25px rgba(255,0,0,.15);
+
+}
+
+.page{
+
+padding-bottom:50px;
+
+}
+
+.stats-grid .card:nth-child(1){
+
+animation-delay:.1s;
+
+}
+
+.stats-grid .card:nth-child(2){
+
+animation-delay:.2s;
+
+}
+
+.stats-grid .card:nth-child(3){
+
+animation-delay:.3s;
+
+}
+
+.stats-grid .card:nth-child(4){
+
+animation-delay:.4s;
+
+}
+
+.stats-grid .card{
+
+animation:
+
+pageShow .45s ease;
+
+}
+/* =========================
+RUDRA DASHBOARD CSS
+PART 7
+========================= */
+
+@media (max-width:850px){
+
+.sidebar{
+
+width:85px;
+
+padding:14px 10px;
+
+}
+
+.sidebar-logo{
+
+width:60px;
+
+}
+
+.logo-box h2,
+.logo-box p,
+.sidebar-menu span,
+.sidebar-menu .badge{
+
+display:none;
+
+}
+
+.sidebar-menu button{
+
+justify-content:center;
+
+padding:0;
+
+height:58px;
+
+}
+
+.sidebar-menu button i{
+
+font-size:20px;
+
+margin:0;
+
+}
+
+.content{
+
+margin-left:0;
+
+padding:16px;
+
+}
+
+.topbar{
+
+flex-direction:column;
+
+align-items:flex-start;
+
+gap:15px;
+
+}
+
+.profile-box{
+
+width:100%;
+
+justify-content:space-between;
+
+}
+
+}
+
+@media (max-width:600px){
+
+html,
+body{
+
+overflow:auto;
+
+}
+
+.dashboard{
+
+height:auto;
+
+}
+
+.sidebar{
+
+position:fixed;
+
+bottom:0;
+
+left:0;
+
+width:100%;
+
+height:80px;
+
+padding:10px;
+
+z-index:9999;
+
+border-right:none;
+
+border-top:1px solid rgba(255,255,255,.08);
+
+}
+
+.sidebar-menu{
+
+flex-direction:row;
+
+overflow-x:auto;
+
+gap:8px;
+
+}
+
+.sidebar-menu button{
+
+min-width:60px;
+
+height:60px;
+
+border-radius:16px;
+
+flex-shrink:0;
+
+}
+
+.logo-box{
+
+display:none;
+
+}
+
+.content{
+
+padding-bottom:110px;
+
+}
+
+.topbar h1{
+
+font-size:24px;
+
+}
+
+.profile-box{
+
+flex-direction:column;
+
+align-items:flex-start;
+
+}
+
+.profile-box img{
+
+width:52px;
+
+height:52px;
+
+}
+
+#serverSelect{
+
+width:100%;
+
+}
+
+.page h2{
+
+font-size:22px;
+
+}
+
+.card h1,
+.card h2{
+
+font-size:22px;
+
+}
+
+.panel{
+
+padding:16px;
+
+}
+
+.setting{
+
+padding:14px;
+
+}
+
+}
+
+@media (max-width:400px){
+
+.stats-grid,
+.settings-grid,
+.reaction-layout{
+
+grid-template-columns:1fr;
+
+}
+
+.sidebar-menu button{
+
+min-width:55px;
+
+height:55px;
+
+}
+
+.sidebar-menu button i{
+
+font-size:18px;
+
+}
+
+.topbar h1{
+
+font-size:20px;
+
+}
+
+.card{
+
+padding:16px;
+
+}
+
+}
+/* =========================
+RUDRA DASHBOARD JS
+PART 9
+========================= */
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    () => {
+
+        document
+            .querySelectorAll(
+                ".variables"
+            )
+            .forEach(
+                container => {
+
+                    const variables = [
+
+                        "{user}",
+                        "{username}",
+                        "{server}",
+                        "{membercount}",
+                        "{avatar}",
+                        "{time}",
+                        "{date}"
+
+                    ];
+
+                    container.innerHTML = "";
+
+                    variables.forEach(
+                        variable => {
+
+                            const span =
+                                document.createElement(
+                                    "span"
+                                );
+
+                            span.textContent =
+                                variable;
+
+                            span.onclick =
+                                () => {
+
+                                    const textarea =
+                                        container
+                                            .parentElement
+                                            .parentElement
+                                            .querySelector(
+                                                "textarea"
+                                            );
+
+                                    if (
+                                        textarea
+                                    ) {
+
+                                        textarea.value +=
+                                            " " +
+                                            variable;
+
+                                    }
+
+                                };
+
+                            container.appendChild(
+                                span
+                            );
+
+                        }
+
+                    );
+
+                }
+
+            );
+
+    }
+
+);
+
+async function logout() {
+
+    window.location.href =
+
+        `${BACKEND}/logout`;
+
+}
+
+window.logout = logout;
+
+const logoutButton =
+
+    document.createElement(
+
+        "button"
+
+    );
+
+logoutButton.innerHTML =
+
+    `<i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>`;
+
+logoutButton.onclick =
+
+    logout;
+
+logoutButton.className =
+
+    "logout-btn";
+
+document
+
+    .querySelector(
+
+        ".sidebar-menu"
+
+    )
+
+    ?.appendChild(
+
+        logoutButton
+
+    );
+
+console.log(
+
+    "✅ Variables & Logout Loaded"
+
+);
+/* =========================
+RUDRA DASHBOARD CSS
+PART 8
+========================= */
+
+.logout-btn{
+
+margin-top:18px !important;
+
+background:linear-gradient(
+
+135deg,
+
+#ff2d2d,
+
+#9c0000
+
+) !important;
+
+color:#fff !important;
+
+font-weight:700;
+
+}
+
+.logout-btn:hover{
+
+box-shadow:0 0 25px rgba(255,0,0,.35);
+
+transform:translateY(-3px);
+
+}
+
+.status-online{
+
+color:#00ff88;
+
+}
+
+.status-offline{
+
+color:#ff2d2d;
+
+}
+
+#reactionRoleList::-webkit-scrollbar{
+
+width:7px;
+
+}
+
+#reactionRoleList::-webkit-scrollbar-thumb{
+
+background:#ff2d2d;
+
+border-radius:20px;
+
+}
+
+.settings-grid button:disabled{
+
+opacity:.6;
+
+cursor:not-allowed;
+
+}
+
+.setting input:disabled{
+
+opacity:.7;
+
+background:#121212;
+
+}
+
+.page::-webkit-scrollbar{
+
+width:8px;
+
+}
+
+.page::-webkit-scrollbar-thumb{
+
+background:#ff2d2d;
+
+border-radius:20px;
+
+}
+
+.topbar{
+
+padding-bottom:18px;
+
+border-bottom:1px solid rgba(255,255,255,.06);
+
+}
+
+.profile-box{
+
+min-width:320px;
+
+}
+
+.profile-box div{
+
+display:flex;
+
+flex-direction:column;
+
+gap:6px;
+
+}
+
+.sidebar-menu{
+
+padding-bottom:20px;
+
+}
+
+.sidebar-menu button.active{
+
+background:linear-gradient(
+
+90deg,
+
+rgba(255,0,0,.25),
+
+rgba(255,0,0,.08)
+
+);
+
+border:1px solid rgba(255,0,0,.3);
+
+}
+
+.panel{
+
+transition:.3s ease;
+
+}
+
+.panel:hover{
+
+transform:translateY(-4px);
+
+}
+
+.card{
+
+transition:.3s ease;
+
+}
+
+.card:hover{
+
+border-color:rgba(255,0,0,.2);
+
+}
+/* =========================
+RUDRA DASHBOARD CSS
+PART 9
+========================= */
+
+.server-item{
+
+display:flex;
+
+flex-direction:column;
+
+gap:10px;
+
+padding:18px;
+
+background:#141414;
+
+border-radius:16px;
+
+border:1px solid rgba(255,255,255,.06);
+
+transition:.3s;
+
+}
+
+.server-item:hover{
+
+transform:translateY(-5px);
+
+box-shadow:0 0 25px rgba(255,0,0,.2);
+
+}
+
+.server-item h3{
+
+font-size:18px;
+
+font-weight:700;
+
+color:#fff;
+
+}
+
+.server-item p{
+
+font-size:14px;
+
+color:#9d9d9d;
+
+}
+
+.server-item button{
+
+width:100%;
+
+height:46px;
+
+border:none;
+
+border-radius:12px;
+
+background:linear-gradient(
+
+135deg,
+
+#ff2d2d,
+
+#a80000
+
+);
+
+color:#fff;
+
+font-weight:700;
+
+cursor:pointer;
+
+transition:.25s;
+
+}
+
+.server-item button:hover{
+
+transform:scale(1.02);
+
+box-shadow:0 0 20px rgba(255,0,0,.35);
+
+}
+
+textarea{
+
+scrollbar-width:thin;
+
+scrollbar-color:#ff2d2d #141414;
+
+}
+
+textarea::-webkit-scrollbar{
+
+width:8px;
+
+}
+
+textarea::-webkit-scrollbar-thumb{
+
+background:#ff2d2d;
+
+border-radius:20px;
+
+}
+
+select option{
+
+background:#121212;
+
+color:#fff;
+
+}
+
+.sidebar-menu button i{
+
+min-width:22px;
+
+text-align:center;
+
+}
+
+.card p,
+.panel p{
+
+word-break:break-word;
+
+}
+
+.dashboard{
+
+position:relative;
+
+isolation:isolate;
+
+}
+
+.content{
+
+position:relative;
+
+z-index:2;
+
+}
+
+.sidebar{
+
+position:relative;
+
+z-index:10;
+
+}
+
+.logo-box{
+
+padding-bottom:15px;
+
+border-bottom:1px solid rgba(255,255,255,.06);
+
+}
+
+.logo-box h2{
+
+background:linear-gradient(
+
+90deg,
+
+#ffffff,
+
+#ff2d2d
+
+);
+
+-webkit-background-clip:text;
+
+-webkit-text-fill-color:transparent;
+
+}
+/* =========================
+RUDRA DASHBOARD JS
+PART 10
+========================= */
+
+window.addEventListener(
+
+    "DOMContentLoaded",
+
+    () => {
+
+        showPage(
+
+            "dashboard"
+
+        );
+
+        const firstButton = document.querySelector(
+
+            '.sidebar-menu button[data-page="dashboard"]'
+
+        );
+
+        if (
+
+            firstButton
+
+        ) {
+
+            firstButton.classList.add(
+
+                "active"
+
+            );
+
+        }
+
+    }
+
+);
+
+document.addEventListener(
+
+    "click",
+
+    event => {
+
+        const button = event.target.closest(
+
+            ".sidebar-menu button"
+
+        );
+
+        if (
+
+            !button
+
+        ) return;
+
+        document
+
+            .querySelectorAll(
+
+                ".sidebar-menu button"
+
+            )
+
+            .forEach(
+
+                btn => {
+
+                    btn.classList.remove(
+
+                        "active"
+
+                    );
+
+                }
+
+            );
+
+        button.classList.add(
+
+            "active"
+
+        );
+
+    }
+
+);
+
+function copyVariable(
+
+    variable
+
+) {
+
+    navigator.clipboard.writeText(
+
+        variable
+
+    );
+
+    notify(
+
+        `${variable} copied`
+
+    );
+
+}
+
+window.copyVariable =
+
+    copyVariable;
+
+document
+
+    .querySelectorAll(
+
+        ".variables span"
+
+    )
+
+    .forEach(
+
+        span => {
+
+            span.addEventListener(
+
+                "click",
+
+                () => {
+
+                    copyVariable(
+
+                        span.textContent
+
+                    );
+
+                }
+
+            );
+
+        }
+
+    );
+
+console.log(
+
+    "✅ Navigation Loaded"
+
+);
+/* =========================
+RUDRA DASHBOARD JS
+PART 11
+========================= */
+
+async function saveWelcome() {
+
+    await saveSettings();
+
+}
+
+async function saveLeave() {
+
+    await saveSettings();
+
+}
+
+async function saveAutomod() {
+
+    await saveSettings();
+
+}
+
+async function saveAI() {
+
+    await saveSettings();
+
+}
+
+async function saveDashboardSettings() {
+
+    const theme = getValue(
+
+        "theme"
+
+    );
+
+    const language = getValue(
+
+        "language"
+
+    );
+
+    localStorage.setItem(
+
+        "rudraTheme",
+
+        theme
+
+    );
+
+    localStorage.setItem(
+
+        "rudraLanguage",
+
+        language
+
+    );
+
+    notify(
+
+        "✅ Dashboard settings saved"
+
+    );
+
+}
+
+function loadDashboardSettings() {
+
+    const theme = localStorage.getItem(
+
+        "rudraTheme"
+
+    );
+
+    const language = localStorage.getItem(
+
+        "rudraLanguage"
+
+    );
+
+    if (
+
+        theme
+
+    ) {
+
+        setValue(
+
+            "theme",
+
+            theme
+
+        );
+
+    }
+
+    if (
+
+        language
+
+    ) {
+
+        setValue(
+
+            "language",
+
+            language
+
+        );
+
+    }
+
+}
+
+window.addEventListener(
+
+    "load",
+
+    () => {
+
+        loadDashboardSettings();
+
+    }
+
+);
+
+document.addEventListener(
+
+    "click",
+
+    event => {
+
+        switch (
+
+            event.target.id
+
+        ) {
+
+            case "saveWelcome":
+
+                saveWelcome();
+
+                break;
+
+            case "saveLeave":
+
+                saveLeave();
+
+                break;
+
+            case "saveAutomod":
+
+                saveAutomod();
+
+                break;
+
+            case "saveAI":
+
+                saveAI();
+
+                break;
+
+            case "saveDashboardSettings":
+
+                saveDashboardSettings();
+
+                break;
+
+        }
+
+    }
+
+);
+
+console.log(
+
+    "✅ Dashboard Settings Loaded"
+
+);
+/* =========================
+RUDRA DASHBOARD JS
+PART 12
+========================= */
+
+async function sendBroadcast() {
+
+    const message = getValue(
+
+        "broadcastMessage"
+
+    );
+
+    if (
+
+        !message
+
+    ) {
+
+        return notify(
+
+            "Enter a message"
+
+        );
+
+    }
+
+    try {
+
+        const res = await fetch(
+
+            `${BACKEND}/api/owner/broadcast`,
+
+            {
+
+                method: "POST",
+
+                credentials: "include",
+
+                headers: {
+
+                    "Content-Type":
+
+                    "application/json"
+
+                },
+
+                body: JSON.stringify({
+
+                    message
+
+                })
+
+            }
+
+        );
+
+        const data = await res.json();
+
+        if (
+
+            data.success
+
+        ) {
+
+            notify(
+
+                "✅ Broadcast sent"
+
+            );
+
+        } else {
+
+            notify(
+
+                "❌ Failed"
+
+            );
+
+        }
+
+    } catch {
+
+        notify(
+
+            "❌ Backend Error"
+
+        );
+
+    }
+
+}
+
+document.addEventListener(
+
+    "click",
+
+    event => {
+
+        switch (
+
+            event.target.id
+
+        ) {
+
+            case "sendBroadcast":
+
+                sendBroadcast();
+
+                break;
+
+        }
+
+    }
+
+);
+
+async function logoutUser() {
+
+    localStorage.removeItem(
+
+        "selectedGuild"
+
+    );
+
+    localStorage.removeItem(
+
+        "lastGuild"
+
+    );
+
+    window.location.href =
+
+        `${BACKEND}/logout`;
+
+}
+
+window.logoutUser =
+
+    logoutUser;
+
+console.log(
+
+    "✅ Owner System Loaded"
+
+);
