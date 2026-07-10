@@ -15,26 +15,53 @@ const {
   Partials,
   Collection,
   REST,
-  Routes
+  Routes,
+  Events,
+  MessageFlags
 } = require("discord.js");
+
+const GuildSettings = require("./models/GuildSettings");
 
 const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
+/* =========================
+   EXPRESS
+========================= */
+
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(express.static(path.join(__dirname, "../")));
+
+/* =========================
+   SESSION + DISCORD LOGIN
+========================= */
 
 app.use(session({
   secret: process.env.SESSION_SECRET || "rudra-dashboard-secret",
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true
+  }
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
 
 passport.use(new DiscordStrategy({
   clientID: process.env.CLIENT_ID,
@@ -42,8 +69,12 @@ passport.use(new DiscordStrategy({
   callbackURL: process.env.REDIRECT_URI,
   scope: ["identify", "guilds"]
 }, (accessToken, refreshToken, profile, done) => {
-  return done(null, profile);
+  done(null, profile);
 }));
+
+/* =========================
+   DISCORD CLIENT
+========================= */
 
 const client = new Client({
   intents: [
@@ -51,71 +82,179 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates
   ],
+
   partials: [
     Partials.Message,
     Partials.Channel,
-    Partials.Reaction
+    Partials.Reaction,
+    Partials.User,
+    Partials.GuildMember
   ]
 });
 
 client.commands = new Collection();
+client.prefixCommands = new Collection();
 
-require("./events/reactionRole")(client);
+/* =========================
+   RECURSIVE COMMAND LOADER
+========================= */
 
-const commands = [];
-const commandsPath = path.join(__dirname, "commands");
+const slashCommandsJSON = [];
 
-if (fs.existsSync(commandsPath)) {
-  const folders = fs.readdirSync(commandsPath);
+function loadCommands(directory) {
+  if (!fs.existsSync(directory)) {
+    console.log(`⚠️ Commands folder missing: ${directory}`);
+    return;
+  }
 
-  for (const folder of folders) {
-    const folderPath = path.join(commandsPath, folder);
-    if (!fs.lstatSync(folderPath).isDirectory()) continue;
+  const entries = fs.readdirSync(directory, {
+    withFileTypes: true
+  });
 
-    const files = fs.readdirSync(folderPath).filter(file => file.endsWith(".js"));
+  for (const entry of entries) {
+    const fullPath = path.join(directory, entry.name);
 
-    for (const file of files) {
-      const command = require(path.join(folderPath, file));
+    if (entry.isDirectory()) {
+      loadCommands(fullPath);
+      continue;
+    }
 
-      if (!command.data || !command.execute) continue;
+    if (!entry.name.endsWith(".js")) continue;
 
-      client.commands.set(command.data.name, command);
-      commands.push(command.data.toJSON());
+    try {
+      delete require.cache[require.resolve(fullPath)];
+
+      const command = require(fullPath);
+
+      if (!command.data || typeof command.execute !== "function") {
+        console.log(`⚠️ Invalid command skipped: ${fullPath}`);
+        continue;
+      }
+
+      const commandName = command.data.name;
+
+      if (client.commands.has(commandName)) {
+        console.log(`⚠️ Duplicate command replaced: ${commandName}`);
+      }
+
+      client.commands.set(commandName, command);
+      slashCommandsJSON.push(command.data.toJSON());
+
+      if (typeof command.prefixExecute === "function") {
+        client.prefixCommands.set(commandName, command);
+
+        if (Array.isArray(command.aliases)) {
+          for (const alias of command.aliases) {
+            client.prefixCommands.set(alias.toLowerCase(), command);
+          }
+        }
+      }
+
+      console.log(`✅ Loaded command: ${commandName}`);
+
+    } catch (error) {
+      console.error(`❌ Failed loading command ${fullPath}:`, error);
     }
   }
 }
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Error:", err));
+loadCommands(path.join(__dirname, "commands"));
 
-app.use("/api/dashboard", require("./routes/dashboard")(client));
-app.use("/api/guild", require("./routes/guild")(client));
-app.use("/api/owner", require("./routes/owner")(client));
-app.use("/api/reactionrole", require("./routes/reactionrole")(client));
+console.log(`✅ Total slash commands loaded: ${client.commands.size}`);
+console.log(`✅ Total prefix commands loaded: ${client.prefixCommands.size}`);
+
+/* =========================
+   EVENTS
+========================= */
+
+const reactionRoleEvent = path.join(
+  __dirname,
+  "events",
+  "reactionRole.js"
+);
+
+if (fs.existsSync(reactionRoleEvent)) {
+  require(reactionRoleEvent)(client);
+  console.log("✅ Reaction role event loaded");
+}
+
+/* =========================
+   DATABASE
+========================= */
+
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+  })
+  .catch(error => {
+    console.error("❌ MongoDB Connection Error:", error);
+  });
+
+/* =========================
+   API ROUTES
+========================= */
+
+app.use(
+  "/api/dashboard",
+  require("./routes/dashboard")(client)
+);
+
+app.use(
+  "/api/guild",
+  require("./routes/guild")(client)
+);
+
+app.use(
+  "/api/owner",
+  require("./routes/owner")(client)
+);
+
+app.use(
+  "/api/reactionrole",
+  require("./routes/reactionrole")(client)
+);
+
+/* =========================
+   HEALTH
+========================= */
 
 app.get("/health", (req, res) => {
   res.json({
     status: client.isReady() ? "Online" : "Offline",
     bot: client.user?.tag || "Starting...",
-    ping: client.ws.ping,
+    ping: client.ws.ping || 0,
     servers: client.guilds.cache.size,
     users: client.guilds.cache.reduce(
-      (a, g) => a + (g.memberCount || 0),
+      (total, guild) => total + (guild.memberCount || 0),
       0
-    )
+    ),
+    commands: client.commands.size,
+    database:
+      mongoose.connection.readyState === 1
+        ? "Connected"
+        : "Disconnected"
   });
 });
 
-app.get("/auth/discord", passport.authenticate("discord"));
+/* =========================
+   DISCORD OAUTH
+========================= */
+
+app.get(
+  "/auth/discord",
+  passport.authenticate("discord")
+);
 
 app.get(
   "/auth/discord/callback",
-  passport.authenticate("discord", { failureRedirect: "/" }),
+  passport.authenticate("discord", {
+    failureRedirect: "/"
+  }),
   (req, res) => {
-    return res.redirect("/dashboard/dashboard.html");
+    res.redirect("/dashboard/dashboard.html");
   }
 );
 
@@ -140,12 +279,20 @@ app.get("/api/user", (req, res) => {
 app.get("/api/guilds", (req, res) => {
   if (!req.user) {
     return res.status(401).json({
+      success: false,
       message: "Not logged in"
     });
   }
 
-  const guilds = (req.user.guilds || []).filter(g => {
-    return (BigInt(g.permissions) & BigInt(0x20)) === BigInt(0x20);
+  const guilds = (req.user.guilds || []).filter(guild => {
+    const permissions = BigInt(guild.permissions || "0");
+    const manageGuild = BigInt(0x20);
+    const administrator = BigInt(0x8);
+
+    return (
+      (permissions & manageGuild) === manageGuild ||
+      (permissions & administrator) === administrator
+    );
   });
 
   res.json(guilds);
@@ -157,61 +304,237 @@ app.get("/logout", (req, res) => {
   });
 });
 
-client.once("clientReady", async () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+/* =========================
+   CLIENT READY
+========================= */
 
-  const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+client.once(Events.ClientReady, async readyClient => {
+  console.log(`✅ Logged in as ${readyClient.user.tag}`);
+
+  readyClient.user.setActivity("/help | RUDRA");
+
+  const rest = new REST({
+    version: "10"
+  }).setToken(process.env.TOKEN);
 
   try {
     await rest.put(
       Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: commands }
+      {
+        body: slashCommandsJSON
+      }
     );
 
-    console.log(`✅ Registered ${commands.length} slash commands.`);
-  } catch (err) {
-    console.error("SLASH REGISTER ERROR:", err);
+    console.log(
+      `✅ Registered ${slashCommandsJSON.length} global slash commands`
+    );
+
+  } catch (error) {
+    console.error("❌ Slash command registration error:", error);
   }
 });
 
-client.on("interactionCreate", async interaction => {
-  console.log("INTERACTION:", interaction.type, interaction.commandName);
+/* =========================
+   SLASH COMMAND HANDLER
+========================= */
 
+client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  const command = client.commands.get(interaction.commandName);
-  console.log("COMMAND FOUND:", !!command);
+  const command = client.commands.get(
+    interaction.commandName
+  );
+
+  console.log(
+    `COMMAND: /${interaction.commandName} | USER: ${interaction.user.tag}`
+  );
 
   if (!command) {
     return interaction.reply({
-      content: "❌ Command not found in bot.",
-      ephemeral: true
-    }).catch(console.error);
+      content:
+        "❌ This command is not loaded in RUDRA. Check Render logs.",
+      flags: MessageFlags.Ephemeral
+    }).catch(() => {});
   }
 
   try {
-    await command.execute(interaction);
-  } catch (err) {
-    console.error("COMMAND ERROR:", interaction.commandName, err);
+    await command.execute(interaction, client);
 
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: "❌ Command error. Check Render logs.",
-        ephemeral: true
-      }).catch(console.error);
+  } catch (error) {
+    console.error(
+      `❌ Command error /${interaction.commandName}:`,
+      error
+    );
+
+    const errorMessage = {
+      content:
+        "❌ Command failed. RUDRA has recorded the error. Check bot permissions and Render logs.",
+      flags: MessageFlags.Ephemeral
+    };
+
+    if (interaction.deferred || interaction.replied) {
+      await interaction.followUp(errorMessage).catch(() => {});
     } else {
-      await interaction.reply({
-        content: "❌ Command error. Check Render logs.",
-        ephemeral: true
-      }).catch(console.error);
+      await interaction.reply(errorMessage).catch(() => {});
     }
   }
 });
+
+/* =========================
+   PREFIX COMMAND HANDLER
+========================= */
+
+client.on(Events.MessageCreate, async message => {
+  if (message.author.bot) return;
+  if (!message.guild) return;
+  if (!message.content) return;
+
+  try {
+    let settings = await GuildSettings.findOne({
+      guildId: message.guild.id
+    });
+
+    if (!settings) {
+      settings = await GuildSettings.create({
+        guildId: message.guild.id,
+        prefixes: ["!"],
+        defaultPrefix: "!"
+      });
+    }
+
+    let prefixes = Array.isArray(settings.prefixes)
+      ? settings.prefixes
+      : [];
+
+    if (!prefixes.length) {
+      prefixes = [
+        settings.defaultPrefix ||
+        settings.prefix ||
+        "!"
+      ];
+    }
+
+    prefixes = prefixes
+      .map(prefix => String(prefix).trim())
+      .filter(Boolean)
+      .sort((a, b) => b.length - a.length);
+
+    const usedPrefix = prefixes.find(prefix =>
+      message.content.startsWith(prefix)
+    );
+
+    if (!usedPrefix) return;
+
+    const content = message.content
+      .slice(usedPrefix.length)
+      .trim();
+
+    if (!content) return;
+
+    const args = content.split(/\s+/);
+    const commandName = args.shift().toLowerCase();
+
+    /* Built-in ping */
+
+    if (commandName === "ping") {
+      return message.reply(
+        `🏓 Pong! **${client.ws.ping || 0}ms**`
+      );
+    }
+
+    /* Built-in prefix list */
+
+    if (
+      commandName === "prefix" ||
+      commandName === "prefixes"
+    ) {
+      return message.reply(
+        `⚙️ **RUDRA Prefixes**\n${prefixes
+          .map(prefix => `\`${prefix}\``)
+          .join(" ")}\n\nDefault: \`${
+          settings.defaultPrefix || prefixes[0]
+        }\``
+      );
+    }
+
+    /* Built-in help */
+
+    if (commandName === "help") {
+      const commandNames = [
+        ...new Set(
+          client.commands.map(command => command.data.name)
+        )
+      ].sort();
+
+      const visibleCommands = commandNames
+        .slice(0, 40)
+        .map(name => `\`/${name}\``)
+        .join(" ");
+
+      return message.reply({
+        content:
+          `🛡️ **RUDRA Help**\n\n` +
+          `**Server prefixes:** ${prefixes
+            .map(prefix => `\`${prefix}\``)
+            .join(" ")}\n\n` +
+          `**Slash commands:**\n${visibleCommands}\n\n` +
+          `Use \`/help\` for the complete interactive help menu.`
+      });
+    }
+
+    const command = client.prefixCommands.get(commandName);
+
+    if (!command) {
+      return message.reply(
+        `❌ Prefix command \`${commandName}\` not found.\nUse \`/help\` to see available commands.`
+      );
+    }
+
+    try {
+      await command.prefixExecute({
+        message,
+        args,
+        client,
+        prefix: usedPrefix,
+        settings
+      });
+
+    } catch (error) {
+      console.error(
+        `❌ Prefix command error ${commandName}:`,
+        error
+      );
+
+      await message.reply(
+        "❌ This command failed. Check RUDRA permissions and Render logs."
+      ).catch(() => {});
+    }
+
+  } catch (error) {
+    console.error("❌ Message command handler error:", error);
+  }
+});
+
+/* =========================
+   PROCESS ERRORS
+========================= */
+
+process.on("unhandledRejection", error => {
+  console.error("❌ Unhandled rejection:", error);
+});
+
+process.on("uncaughtException", error => {
+  console.error("❌ Uncaught exception:", error);
+});
+
+/* =========================
+   START
+========================= */
 
 client.login(process.env.TOKEN);
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 RUDRA server running on port ${PORT}`);
 });
