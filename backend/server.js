@@ -538,3 +538,427 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 RUDRA server running on port ${PORT}`);
 });
+/* =========================================================
+   CLIENT READY + SLASH COMMAND REGISTER
+========================================================= */
+
+async function registerSlashCommands() {
+  try {
+    const rest = new REST({
+      version: "10"
+    }).setToken(process.env.TOKEN);
+
+    if (process.env.GUILD_ID) {
+      await rest.put(
+        Routes.applicationGuildCommands(
+          process.env.CLIENT_ID,
+          process.env.GUILD_ID
+        ),
+        {
+          body: client.slashCommandsJSON
+        }
+      );
+
+      console.log(
+        `✅ Registered ${client.slashCommandsJSON.length} guild commands`
+      );
+
+      return;
+    }
+
+    await rest.put(
+      Routes.applicationCommands(
+        process.env.CLIENT_ID
+      ),
+      {
+        body: client.slashCommandsJSON
+      }
+    );
+
+    console.log(
+      `✅ Registered ${client.slashCommandsJSON.length} global commands`
+    );
+
+  } catch (error) {
+    console.error(
+      "❌ Slash command registration error:",
+      error
+    );
+  }
+}
+
+client.once(
+  Events.ClientReady,
+  async readyClient => {
+    console.log(
+      `✅ Logged in as ${readyClient.user.tag}`
+    );
+
+    readyClient.user.setActivity(
+      "/help | RUDRA",
+      {
+        type: ActivityType.Watching
+      }
+    );
+
+    await registerSlashCommands();
+  }
+);
+
+/* =========================================================
+   SAFE INTERACTION REPLY PATCH
+========================================================= */
+
+function patchInteraction(interaction) {
+  const originalReply =
+    interaction.reply.bind(interaction);
+
+  const originalEditReply =
+    interaction.editReply.bind(interaction);
+
+  const originalFollowUp =
+    interaction.followUp.bind(interaction);
+
+  interaction.reply = async options => {
+    if (interaction.deferred) {
+      const editOptions =
+        typeof options === "string"
+          ? { content: options }
+          : { ...options };
+
+      delete editOptions.flags;
+      delete editOptions.ephemeral;
+      delete editOptions.fetchReply;
+
+      return originalEditReply(editOptions);
+    }
+
+    if (interaction.replied) {
+      return originalFollowUp(options);
+    }
+
+    return originalReply(options);
+  };
+}
+
+/* =========================================================
+   SLASH COMMAND HANDLER
+========================================================= */
+
+client.on(
+  Events.InteractionCreate,
+  async interaction => {
+    if (!interaction.isChatInputCommand()) {
+      return;
+    }
+
+    const command =
+      client.commands.get(
+        interaction.commandName
+      );
+
+    console.log(
+      `⚡ /${interaction.commandName} | ${interaction.user.tag}`
+    );
+
+    if (!command) {
+      try {
+        await interaction.reply({
+          content:
+            "❌ This command is not loaded in RUDRA.",
+          flags:
+            MessageFlags.Ephemeral
+        });
+      } catch (error) {
+        console.error(
+          "Missing command reply error:",
+          error
+        );
+      }
+
+      return;
+    }
+
+    patchInteraction(interaction);
+
+    let deferTimer;
+
+    try {
+      deferTimer = setTimeout(
+        async () => {
+          if (
+            interaction.replied ||
+            interaction.deferred
+          ) {
+            return;
+          }
+
+          try {
+            await interaction.deferReply();
+
+            console.log(
+              `⏳ Auto deferred /${interaction.commandName}`
+            );
+          } catch (error) {
+            console.error(
+              `❌ Auto defer failed /${interaction.commandName}:`,
+              error
+            );
+          }
+        },
+        1500
+      );
+
+      await command.execute(
+        interaction,
+        client
+      );
+
+      clearTimeout(deferTimer);
+
+      if (
+        !interaction.replied &&
+        !interaction.deferred
+      ) {
+        await interaction.reply({
+          content:
+            "✅ Command completed.",
+          flags:
+            MessageFlags.Ephemeral
+        });
+      }
+
+    } catch (error) {
+      clearTimeout(deferTimer);
+
+      console.error(
+        `❌ Command error /${interaction.commandName}:`,
+        error
+      );
+
+      const errorMessage =
+        "❌ Command failed. Check bot permissions and Render logs.";
+
+      try {
+        if (interaction.deferred) {
+          await interaction.editReply({
+            content: errorMessage
+          });
+        } else if (interaction.replied) {
+          await interaction.followUp({
+            content: errorMessage,
+            flags:
+              MessageFlags.Ephemeral
+          });
+        } else {
+          await interaction.reply({
+            content: errorMessage,
+            flags:
+              MessageFlags.Ephemeral
+          });
+        }
+      } catch (replyError) {
+        console.error(
+          `❌ Error reply failed /${interaction.commandName}:`,
+          replyError
+        );
+      }
+    }
+  }
+);
+/* =========================================================
+   PREFIX COMMAND HANDLER
+========================================================= */
+
+client.on(
+  Events.MessageCreate,
+  async message => {
+
+    if (
+      message.author.bot ||
+      !message.guild ||
+      !message.content
+    ) {
+      return;
+    }
+
+    try {
+
+      let settings =
+        await GuildSettings.findOne({
+          guildId: message.guild.id
+        });
+
+      if (!settings) {
+
+        settings =
+          await GuildSettings.create({
+            guildId: message.guild.id,
+            prefixes: ["!"],
+            defaultPrefix: "!"
+          });
+
+      }
+
+      let prefixes =
+        Array.isArray(settings.prefixes)
+          ? settings.prefixes
+          : [];
+
+      if (!prefixes.length) {
+
+        prefixes = [
+          settings.defaultPrefix ||
+          settings.prefix ||
+          "!"
+        ];
+
+      }
+
+      prefixes = prefixes
+        .map(prefix =>
+          String(prefix).trim()
+        )
+        .filter(Boolean)
+        .sort(
+          (a, b) =>
+            b.length - a.length
+        );
+
+      const usedPrefix =
+        prefixes.find(prefix =>
+          message.content.startsWith(
+            prefix
+          )
+        );
+
+      if (!usedPrefix) {
+        return;
+      }
+
+      const content =
+        message.content
+          .slice(
+            usedPrefix.length
+          )
+          .trim();
+
+      if (!content) {
+        return;
+      }
+
+      const args =
+        content.split(/\s+/);
+
+      const commandName =
+        args.shift().toLowerCase();
+
+      if (commandName === "ping") {
+
+        return message.reply(
+          `🏓 Pong! ${client.ws.ping}ms`
+        );
+
+      }
+
+      const command =
+        client.prefixCommands.get(
+          commandName
+        );
+
+      if (!command) {
+
+        return message.reply(
+          `❌ Command not found: ${commandName}`
+        );
+
+      }
+
+      await command.prefixExecute({
+        message,
+        args,
+        client,
+        prefix: usedPrefix,
+        settings
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ Prefix command error:",
+        error
+      );
+
+      message.reply(
+        "❌ Command failed."
+      ).catch(() => {});
+
+    }
+  }
+);
+
+/* =========================================================
+   PROCESS ERRORS
+========================================================= */
+
+process.on(
+  "unhandledRejection",
+  error => {
+    console.error(
+      "❌ Unhandled Rejection:",
+      error
+    );
+  }
+);
+
+process.on(
+  "uncaughtException",
+  error => {
+    console.error(
+      "❌ Uncaught Exception:",
+      error
+    );
+  }
+);
+
+/* =========================================================
+   START SERVER
+========================================================= */
+
+async function startRudra() {
+
+  try {
+
+    await mongoose.connect(
+      process.env.MONGODB_URI
+    );
+
+    app.listen(
+      PORT,
+      () => {
+
+        console.log(
+          `🚀 RUDRA running on port ${PORT}`
+        );
+
+      }
+    );
+
+    await client.login(
+      process.env.TOKEN
+    );
+
+  } catch (error) {
+
+    console.error(
+      "❌ Startup failed:",
+      error
+    );
+
+    process.exit(1);
+
+  }
+
+}
+
+startRudra();
