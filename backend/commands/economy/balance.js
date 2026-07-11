@@ -1,5 +1,11 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const User = require("../../models/User");
+.addUserOption(option =>
+    option
+        .setName("user")
+        .setDescription("Check another user's balance")
+        .setRequired(false)
+)
 
 module.exports = {
   data: new SlashCommandBuilder()
