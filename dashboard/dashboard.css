@@ -1960,3 +1960,65 @@ select option{
     width:170px;
   }
 }
+/* =========================================================
+   TOAST
+========================================================= */
+
+.rudra-toast{
+
+  position:fixed;
+
+  right:20px;
+  bottom:20px;
+
+  z-index:99999;
+
+  min-width:240px;
+
+  padding:14px 18px;
+
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  border-radius:14px;
+
+  color:#fff;
+
+  background:#16161d;
+
+  border:1px solid rgba(255,255,255,.08);
+
+  transform:
+    translateY(100px);
+
+  opacity:0;
+
+  transition:.3s;
+}
+
+.rudra-toast.show{
+
+  opacity:1;
+
+  transform:
+    translateY(0);
+}
+
+.rudra-toast.success{
+
+  border-left:
+    4px solid #23d18b;
+}
+
+.rudra-toast.error{
+
+  border-left:
+    4px solid #ff4d4d;
+}
+
+.rudra-toast.warning{
+
+  border-left:
+    4px solid #ffb020;
+}
