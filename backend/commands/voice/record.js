@@ -775,80 +775,6 @@ async function finishRecording(guildId) {
     uploadedFiles
   };
 }
-
-/* =========================================================
-   STOP SESSION
-========================================================= */
-
-async function stopSession(
-  interaction,
-  session
-) {
-  await interaction.deferReply({
-    ephemeral: true
-  });
-
-  const result =
-    await finishRecording(
-      interaction.guild.id
-    );
-
-  if (!result) {
-    return interaction.editReply(
-      "❌ Recording session nahi mili."
-    );
-  }
-
-  if (result.panelMessage) {
-    await result.panelMessage.edit({
-      embeds: [
-        createPanelEmbed(
-          result,
-          true
-        )
-      ],
-
-      components: [
-        createPanelButtons(
-          result,
-          true
-        )
-      ]
-    }).catch(() => {});
-  }
-
-  if (!result.uploadedFiles.length) {
-    return interaction.editReply(
-      "⚠️ Recording stop ho gayi, lekin koi audio receive nahi hui."
-    );
-  }
-
-  try {
-    await interaction.channel.send({
-      content:
-        `✅ **Recording Completed**\n` +
-        `🆔 ID: \`${result.recordingId}\`\n` +
-        `🎙️ Channel: <#${result.channelId}>\n` +
-        `👥 Audio Files: ${result.uploadedFiles.length}`,
-
-      files:
-        result.uploadedFiles.slice(0, 10)
-    });
-
-    return interaction.editReply(
-      "✅ Recording stopped aur files send ho gayi."
-    );
-  } catch (error) {
-    console.error(
-      "Upload error:",
-      error.message
-    );
-
-    return interaction.editReply(
-      "⚠️ Recording saved but not uploaded. File size may be large."
-    );
-  }
-}
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("record")
@@ -858,7 +784,7 @@ module.exports = {
       sub
         .setName("start")
         .setDescription(
-          "Start recording"
+          "Start voice recording in your current voice channel."
         )
     )
 
@@ -866,7 +792,7 @@ module.exports = {
       sub
         .setName("stop")
         .setDescription(
-          "Stop recording"
+          "Stop the active recording session."
         )
     )
 
@@ -874,7 +800,7 @@ module.exports = {
       sub
         .setName("status")
         .setDescription(
-          "Recording status"
+          "Check the current recording status."
         )
     ),
 
@@ -896,7 +822,7 @@ module.exports = {
       if (!voiceChannel) {
         return interaction.reply({
           content:
-            "❌ Pehle voice channel join karo.",
+            "❌ You must join a voice channel first.",
           ephemeral: true
         });
       }
@@ -908,7 +834,7 @@ module.exports = {
       ) {
         return interaction.reply({
           content:
-            "⚠️ Recording already chal rahi hai.",
+            "⚠️ A recording session is already running.",
           ephemeral: true
         });
       }
@@ -1052,7 +978,7 @@ module.exports = {
       if (!session) {
         return interaction.reply({
           content:
-            "❌ Recording chal nahi rahi.",
+            "❌ No recording session is currently active.",
           ephemeral: true
         });
       }
@@ -1076,7 +1002,7 @@ module.exports = {
       if (!session) {
         return interaction.reply({
           content:
-            "❌ Koi active recording nahi hai.",
+            "❌ No active recording session found.",
           ephemeral: true
         });
       }
