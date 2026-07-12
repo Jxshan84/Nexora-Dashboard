@@ -317,18 +317,18 @@ try {
 }
 
 loadCommands(
-path.join(
-__dirname,
-"commands"
-)
+  path.join(
+    __dirname,
+    "commands"
+  )
 );
 
 console.log(
-✅ Total slash commands loaded: ${client.commands.size}
+  `✅ Total slash commands loaded: ${client.commands.size}`
 );
 
 console.log(
-✅ Total prefix commands loaded: ${client.prefixCommands.size}
+  `✅ Total prefix commands loaded: ${client.prefixCommands.size}`
 );
 
 /* =========================================================
@@ -659,27 +659,25 @@ error
 /* =========================================================
 CLIENT READY
 ========================================================= */
-
 client.once(
-Events.ClientReady,
+  Events.ClientReady,
 
-async readyClient => {
-console.log(
-✅ Logged in as ${readyClient.user.tag}
-);
+  async readyClient => {
+    console.log(
+      `✅ Logged in as ${readyClient.user.tag}`
+    );
 
-readyClient.user.setActivity(  
-  "/help | RUDRA",  
+    readyClient.user.setActivity(
+      "/help | RUDRA",
 
-  {  
-    type:  
-      ActivityType.Watching  
-  }  
-);  
+      {
+        type:
+          ActivityType.Watching
+      }
+    );
 
-await registerSlashCommands();
-
-}
+    await registerSlashCommands();
+  }
 );
 
 /* =========================================================
