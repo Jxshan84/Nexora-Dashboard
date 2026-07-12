@@ -183,13 +183,11 @@ client.prefixCommands =
    COMMAND LOADER
 ========================================================= */
 
-const slashCommandMap =
-  new Map();
+const slashCommandMap = new Map();
 
 function loadCommands(directory) {
-  if (
-    !fs.existsSync(directory)
-  ) {
+
+  if (!fs.existsSync(directory)) {
     console.log(
       `⚠️ Commands folder missing: ${directory}`
     );
@@ -197,81 +195,117 @@ function loadCommands(directory) {
     return;
   }
 
-  const entries =
-    fs.readdirSync(
+  const entries = fs.readdirSync(
+    directory,
+    {
+      withFileTypes: true
+    }
+  );
+
+  for (const entry of entries) {
+
+    const fullPath = path.join(
       directory,
-      {
-        withFileTypes: true
-      }
+      entry.name
     );
 
-  for (
-    const entry
-    of entries
-  ) {
-    const fullPath =
-      path.join(
-        directory,
-        entry.name
-      );
-
-    if (
-      entry.isDirectory()
-    ) {
+    if (entry.isDirectory()) {
       loadCommands(fullPath);
-
       continue;
     }
 
     if (
-      !entry.name.endsWith(
-        ".js"
-      )
+      !entry.name.endsWith(".js")
     ) {
       continue;
     }
 
     try {
+
       delete require.cache[
-        require.resolve(
-          fullPath
-        )
+        require.resolve(fullPath)
       ];
 
       const command =
         require(fullPath);
 
+      if (
+        !command.data ||
+        typeof command.execute !==
+          "function"
+      ) {
+        console.log(
+          `⚠️ Invalid command skipped: ${fullPath}`
+        );
+
+        continue;
+      }
+
+      const commandName =
+        command.data.name;
+
+      if (!commandName) {
+        console.log(
+          `⚠️ Command without name skipped: ${fullPath}`
+        );
+
+        continue;
+      }
+
+      if (
+        client.commands.has(
+          commandName
+        )
+      ) {
+        console.log(
+          `⚠️ Duplicate command skipped: ${commandName}`
+        );
+
+        continue;
+      }
+
+      client.commands.set(
+        commandName,
+        command
+      );
+
+      slashCommandMap.set(
+        commandName,
+        command.data.toJSON()
+      );
+
       client.prefixCommands.set(
-  commandName.toLowerCase(),
-  command
-);
+        commandName.toLowerCase(),
+        command
+      );
 
-if (
-  Array.isArray(
-    command.aliases
-  )
-) {
-  for (
-    const alias
-    of command.aliases
-  ) {
-    client.prefixCommands.set(
-      String(alias)
-        .toLowerCase(),
-
-      command
-    );
-  }
-}
+      if (
+        Array.isArray(
+          command.aliases
+        )
+      ) {
+        for (
+          const alias of command.aliases
+        ) {
+          client.prefixCommands.set(
+            String(alias)
+              .toLowerCase(),
+            command
+          );
+        }
+      }
 
       console.log(
         `✅ Loaded command: ${commandName}`
       );
+
     } catch (error) {
+
       console.error(
         `❌ Failed loading command ${fullPath}:`,
         error
       );
+
     }
   }
 }
