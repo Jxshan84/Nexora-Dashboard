@@ -20,8 +20,14 @@ const warnSchema = new mongoose.Schema({
     type: String,
     default: "No reason provided"
   }
+
 }, {
   timestamps: true
 });
 
-module.exports = mongoose.models.Warn || mongoose.model("Warn", userSchema);
+module.exports =
+  mongoose.models.Warn ||
+  mongoose.model(
+    "Warn",
+    warnSchema
+  );
