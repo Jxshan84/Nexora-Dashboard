@@ -9,44 +9,60 @@ const GuildSettings = require("../../models/GuildSettings");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("prefix")
-    .setDescription("Set or view server prefix.")
+    .setDescription("Change server prefix")
     .addStringOption(option =>
       option
-        .setName("set")
+        .setName("prefix")
         .setDescription("New prefix")
-        .setRequired(false)
+        .setRequired(true)
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+    .setDefaultMemberPermissions(
+      PermissionFlagsBits.Administrator
+    ),
 
   async execute(interaction) {
-    const newPrefix = interaction.options.getString("set");
 
-    let settings = await GuildSettings.findOne({
-      guildId: interaction.guild.id
-    });
+    await interaction.deferReply();
 
-    if (!settings) {
-      settings = await GuildSettings.create({
+    const newPrefix =
+      interaction.options.getString(
+        "prefix"
+      );
+
+    let settings =
+      await GuildSettings.findOne({
         guildId: interaction.guild.id
       });
+
+    if (!settings) {
+      settings =
+        await GuildSettings.create({
+          guildId: interaction.guild.id,
+          prefixes: [newPrefix],
+          defaultPrefix: newPrefix
+        });
+    } else {
+      settings.prefixes = [newPrefix];
+      settings.defaultPrefix =
+        newPrefix;
+
+      await settings.save();
     }
 
-    if (!newPrefix) {
-      return interaction.reply({
-        content: `📌 Current prefix is: \`${settings.prefix || "/"}\``,
-        ephemeral: true
-      });
-    }
+    const embed =
+      new EmbedBuilder()
+        .setColor("Blue")
+        .setTitle(
+          "⚙️ Prefix Updated"
+        )
+        .setDescription(
+          `New prefix: \`${newPrefix}\``
+        )
+        .setTimestamp();
 
-    settings.prefix = newPrefix;
-    await settings.save();
+    await interaction.editReply({
+      embeds: [embed]
+    });
 
-    const embed = new EmbedBuilder()
-      .setColor("Green")
-      .setTitle("✅ Prefix Updated")
-      .setDescription(`New prefix: \`${newPrefix}\``)
-      .setTimestamp();
-
-    await interaction.reply({ embeds: [embed] });
   }
 };
