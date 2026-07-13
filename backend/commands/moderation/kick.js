@@ -79,5 +79,44 @@ module.exports = {
     await interaction.editReply({
       embeds: [embed]
     });
+  
+  },
+
+  async prefixExecute({
+    message,
+    args,
+    client
+  }) {
+
+    const fakeInteraction = {
+      guild: message.guild,
+      member: message.member,
+      user: message.author,
+      channel: message.channel,
+
+      options: {
+        getUser: () =>
+          message.mentions.users.first(),
+
+        getString: () =>
+          args.slice(1).join(" ")
+      },
+
+      reply: async data =>
+        message.reply(data),
+
+      deferReply: async () => {},
+
+      editReply: async data =>
+        message.reply(data),
+
+      followUp: async data =>
+        message.reply(data)
+    };
+
+    return this.execute(
+      fakeInteraction,
+      client
+    );
   }
 };
