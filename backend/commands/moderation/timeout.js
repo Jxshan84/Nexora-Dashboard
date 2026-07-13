@@ -19,6 +19,8 @@ module.exports = {
         .setName("minutes")
         .setDescription("Timeout duration in minutes")
         .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(40320)
     )
     .addStringOption(option =>
       option
@@ -26,41 +28,49 @@ module.exports = {
         .setDescription("Reason")
         .setRequired(false)
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+    .setDefaultMemberPermissions(
+      PermissionFlagsBits.ModerateMembers
+    ),
 
   async execute(interaction) {
 
-    const target = interaction.options.getUser("user");
-    const minutes = interaction.options.getInteger("minutes");
-    const reason =
-      interaction.options.getString("reason") || "No reason provided";
+    await interaction.deferReply();
 
-    const member = await interaction.guild.members
-      .fetch(target.id)
-      .catch(() => null);
+    const target =
+      interaction.options.getUser("user");
+
+    const minutes =
+      interaction.options.getInteger(
+        "minutes"
+      );
+
+    const reason =
+      interaction.options.getString(
+        "reason"
+      ) || "No reason provided";
+
+    const member =
+      await interaction.guild.members
+        .fetch(target.id)
+        .catch(() => null);
 
     if (!member) {
-      return interaction.reply({
-        content: "❌ User not found.",
-        ephemeral: true
+      return interaction.editReply({
+        content: "❌ User not found."
       });
     }
 
     if (!member.moderatable) {
-      return interaction.reply({
-        content: "❌ I cannot timeout this member.",
-        ephemeral: true
+      return interaction.editReply({
+        content:
+          "❌ I cannot timeout this member."
       });
     }
 
-    if (minutes < 1 || minutes > 40320) {
-      return interaction.reply({
-        content: "❌ Timeout must be between 1 minute and 28 days.",
-        ephemeral: true
-      });
-    }
-
-    await member.timeout(minutes * 60 * 1000, reason);
+    await member.timeout(
+      minutes * 60 * 1000,
+      reason
+    );
 
     const embed = new EmbedBuilder()
       .setColor("Yellow")
@@ -88,7 +98,7 @@ module.exports = {
       )
       .setTimestamp();
 
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [embed]
     });
 
