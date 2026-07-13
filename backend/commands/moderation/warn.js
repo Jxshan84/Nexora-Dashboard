@@ -10,28 +10,27 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("warn")
     .setDescription("Warn a member")
-
     .addUserOption(option =>
       option
         .setName("user")
         .setDescription("User to warn")
         .setRequired(true)
     )
-
     .addStringOption(option =>
       option
         .setName("reason")
         .setDescription("Reason")
         .setRequired(false)
     )
-
     .setDefaultMemberPermissions(
       PermissionFlagsBits.ModerateMembers
     ),
 
   async execute(interaction) {
 
-    const member =
+    await interaction.deferReply();
+
+    const target =
       interaction.options.getUser(
         "user"
       );
@@ -41,66 +40,51 @@ module.exports = {
         "reason"
       ) || "No reason provided";
 
-    if (member.bot) {
-      return interaction.reply({
+    const member =
+      await interaction.guild.members
+        .fetch(target.id)
+        .catch(() => null);
+
+    if (!member) {
+      return interaction.editReply({
         content:
-          "❌ You cannot warn bots.",
-        ephemeral: true
+          "❌ User not found."
       });
     }
 
-    if (
-      member.id === interaction.user.id
-    ) {
-      return interaction.reply({
-        content:
-          "❌ You cannot warn yourself.",
-        ephemeral: true
-      });
-    }
-
-    const warn = await Warn.create({
-      guildId:
-        interaction.guild.id,
-
-      userId:
-        member.id,
-
-      moderatorId:
-        interaction.user.id,
-
+    await Warn.create({
+      guildId: interaction.guild.id,
+      userId: target.id,
+      moderatorId: interaction.user.id,
       reason
     });
 
-    const count =
+    const totalWarns =
       await Warn.countDocuments({
-        guildId:
-          interaction.guild.id,
-
-        userId:
-          member.id
+        guildId: interaction.guild.id,
+        userId: target.id
       });
 
     const embed =
       new EmbedBuilder()
-        .setColor(0xffa500)
+        .setColor("Yellow")
         .setTitle(
-          "⚠️ User Warned"
+          "⚠️ Member Warned"
         )
         .addFields(
           {
             name: "User",
-            value: `<@${member.id}>`,
+            value: target.tag,
             inline: true
           },
           {
             name: "Moderator",
-            value: `<@${interaction.user.id}>`,
+            value: interaction.user.tag,
             inline: true
           },
           {
             name: "Total Warnings",
-            value: String(count),
+            value: String(totalWarns),
             inline: true
           },
           {
@@ -108,13 +92,11 @@ module.exports = {
             value: reason
           }
         )
-        .setFooter({
-          text: `Warn ID: ${warn._id}`
-        })
         .setTimestamp();
 
-    return interaction.reply({
+    await interaction.editReply({
       embeds: [embed]
     });
+
   }
 };
