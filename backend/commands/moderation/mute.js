@@ -7,66 +7,97 @@ const {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("mute")
-    .setDescription("Mute a member using the Muted role.")
+    .setDescription("Mute a member")
     .addUserOption(option =>
       option
         .setName("user")
-        .setDescription("Member to mute")
+        .setDescription("User to mute")
+        .setRequired(true)
+    )
+    .addIntegerOption(option =>
+      option
+        .setName("minutes")
+        .setDescription("Mute duration in minutes")
         .setRequired(true)
     )
     .addStringOption(option =>
       option
         .setName("reason")
-        .setDescription("Reason for mute")
+        .setDescription("Reason")
         .setRequired(false)
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+    .setDefaultMemberPermissions(
+      PermissionFlagsBits.ModerateMembers
+    ),
 
   async execute(interaction) {
 
-    const user = interaction.options.getUser("user");
+    await interaction.deferReply();
+
+    const target =
+      interaction.options.getUser("user");
+
+    const minutes =
+      interaction.options.getInteger(
+        "minutes"
+      );
+
     const reason =
-      interaction.options.getString("reason") || "No reason provided.";
+      interaction.options.getString(
+        "reason"
+      ) || "No reason provided";
 
-    const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+    const member =
+      await interaction.guild.members
+        .fetch(target.id)
+        .catch(() => null);
 
-    if (!member)
-      return interaction.reply({
-        content: "❌ Member not found.",
-        ephemeral: true
+    if (!member) {
+      return interaction.editReply({
+        content: "❌ User not found."
       });
+    }
 
-    const muteRole = interaction.guild.roles.cache.find(
-      r => r.name.toLowerCase() === "muted"
+    if (!member.moderatable) {
+      return interaction.editReply({
+        content:
+          "❌ I cannot mute this member."
+      });
+    }
+
+    await member.timeout(
+      minutes * 60 * 1000,
+      reason
     );
 
-    if (!muteRole)
-      return interaction.reply({
-        content: "❌ Muted role not found. Run **/setupmute** first.",
-        ephemeral: true
-      });
-
-    if (member.roles.cache.has(muteRole.id))
-      return interaction.reply({
-        content: "❌ This member is already muted.",
-        ephemeral: true
-      });
-
-    await member.roles.add(muteRole, reason);
-
     const embed = new EmbedBuilder()
-      .setColor("Orange")
+      .setColor("Yellow")
       .setTitle("🔇 Member Muted")
       .addFields(
-        { name: "Member", value: `${member.user.tag}`, inline: true },
-        { name: "Moderator", value: interaction.user.tag, inline: true },
-        { name: "Reason", value: reason }
+        {
+          name: "User",
+          value: target.tag,
+          inline: true
+        },
+        {
+          name: "Duration",
+          value: `${minutes} minute(s)`,
+          inline: true
+        },
+        {
+          name: "Moderator",
+          value: interaction.user.tag,
+          inline: true
+        },
+        {
+          name: "Reason",
+          value: reason
+        }
       )
       .setTimestamp();
 
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [embed]
     });
-
   }
 };
