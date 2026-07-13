@@ -1,11 +1,15 @@
-const { SlashCommandBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder
+} = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ping")
-    .setDescription("Check bot latency"),
+    .setDescription("Shows bot ping"),
 
-  async execute(interaction) {
-    await interaction.reply(`🏓 Pong! ${interaction.client.ws.ping}ms`);
+  async execute(interaction, client) {
+    await interaction.reply({
+      content: `🏓 Pong! ${client.ws.ping}ms`
+    });
   }
 };
