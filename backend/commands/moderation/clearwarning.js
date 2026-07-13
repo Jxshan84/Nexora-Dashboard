@@ -9,68 +9,62 @@ const Warn = require("../../models/Warn");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("clearwarnings")
-    .setDescription("Clear warnings of a member")
+    .setDescription("Clear all warnings of a member")
     .addUserOption(option =>
-      option.setName("user").setDescription("User").setRequired(true)
-    )
-    .addIntegerOption(option =>
       option
-        .setName("number")
-        .setDescription("Warning number to remove. Leave empty to clear all.")
-        .setRequired(false)
+        .setName("user")
+        .setDescription("User")
+        .setRequired(true)
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+    .setDefaultMemberPermissions(
+      PermissionFlagsBits.ModerateMembers
+    ),
 
   async execute(interaction) {
-    const target = interaction.options.getUser("user");
-    const number = interaction.options.getInteger("number");
 
-    const warns = await Warn.find({
-      guildId: interaction.guild.id,
-      userId: target.id
-    }).sort({ createdAt: 1 });
+    await interaction.deferReply();
 
-    if (!warns.length) {
-      return interaction.reply({
-        content: "✅ This user has no warnings.",
-        ephemeral: true
+    const target =
+      interaction.options.getUser("user");
+
+    const result =
+      await Warn.deleteMany({
+        guildId: interaction.guild.id,
+        userId: target.id
+      });
+
+    if (result.deletedCount === 0) {
+      return interaction.editReply({
+        content:
+          "❌ This user has no warnings."
       });
     }
 
-    if (number) {
-      if (number < 1 || number > warns.length) {
-        return interaction.reply({
-          content: `❌ Invalid warning number. This user has ${warns.length} warning(s).`,
-          ephemeral: true
-        });
-      }
+    const embed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("🗑️ Warnings Cleared")
+      .addFields(
+        {
+          name: "User",
+          value: target.tag,
+          inline: true
+        },
+        {
+          name: "Moderator",
+          value: interaction.user.tag,
+          inline: true
+        },
+        {
+          name: "Warnings Removed",
+          value: `${result.deletedCount}`,
+          inline: true
+        }
+      )
+      .setTimestamp();
 
-      await Warn.deleteOne({ _id: warns[number - 1]._id });
-
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("Green")
-            .setTitle("✅ Warning Removed")
-            .setDescription(`Removed warning **#${number}** from ${target}.`)
-            .setTimestamp()
-        ]
-      });
-    }
-
-    await Warn.deleteMany({
-      guildId: interaction.guild.id,
-      userId: target.id
+    await interaction.editReply({
+      embeds: [embed]
     });
 
-    await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Green")
-          .setTitle("✅ Warnings Cleared")
-          .setDescription(`Cleared **${warns.length}** warning(s) from ${target}.`)
-          .setTimestamp()
-      ]
-    });
   }
 };
