@@ -1,57 +1,76 @@
 const {
   SlashCommandBuilder,
   PermissionFlagsBits,
+  ChannelType,
   EmbedBuilder
 } = require("discord.js");
+
+const GuildSettings = require("../../models/GuildSettings");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("setupmute")
-    .setDescription("Create and setup muted role permissions.")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
+    .setDescription("Set the mute role")
+    .addRoleOption(option =>
+      option
+        .setName("role")
+        .setDescription("Mute role")
+        .setRequired(true)
+    )
+    .setDefaultMemberPermissions(
+      PermissionFlagsBits.Administrator
+    ),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
 
-    let muteRole = interaction.guild.roles.cache.find(
-      r => r.name.toLowerCase() === "muted"
-    );
+    await interaction.deferReply();
 
-    if (!muteRole) {
-      muteRole = await interaction.guild.roles.create({
-        name: "Muted",
-        color: "#2f3136",
-        reason: `Mute role setup by ${interaction.user.tag}`
+    const role =
+      interaction.options.getRole(
+        "role"
+      );
+
+    let settings =
+      await GuildSettings.findOne({
+        guildId: interaction.guild.id
       });
-    }
 
-    let updated = 0;
-
-    for (const channel of interaction.guild.channels.cache.values()) {
-      try {
-        await channel.permissionOverwrites.edit(muteRole, {
-          SendMessages: false,
-          AddReactions: false,
-          Speak: false,
-          SendMessagesInThreads: false,
-          CreatePublicThreads: false,
-          CreatePrivateThreads: false
+    if (!settings) {
+      settings =
+        await GuildSettings.create({
+          guildId: interaction.guild.id
         });
-
-        updated++;
-      } catch {}
     }
 
-    const embed = new EmbedBuilder()
-      .setColor("Green")
-      .setTitle("✅ Mute Role Setup Complete")
-      .addFields(
-        { name: "Role", value: `${muteRole}`, inline: true },
-        { name: "Channels Updated", value: `${updated}`, inline: true }
-      )
-      .setFooter({ text: "RUDRA Moderation" })
-      .setTimestamp();
+    settings.muteRoleId =
+      role.id;
 
-    await interaction.editReply({ embeds: [embed] });
+    await settings.save();
+
+    const embed =
+      new EmbedBuilder()
+        .setColor("Blue")
+        .setTitle(
+          "🔇 Mute Role Configured"
+        )
+        .addFields(
+          {
+            name: "Role",
+            value: `<@&${role.id}>`,
+            inline: true
+          },
+          {
+            name: "Moderator",
+            value:
+              interaction.user.tag,
+            inline: true
+          }
+        )
+        .setTimestamp();
+
+    await interaction.editReply({
+      embeds: [embed]
+    });
+
   }
 };
