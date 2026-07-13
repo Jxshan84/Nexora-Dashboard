@@ -49,7 +49,7 @@ module.exports = {
       })
       .setTimestamp();
 
-    await interaction.reply({
+    await interaction.deferReply();
       embeds: [embed]
     });
 
