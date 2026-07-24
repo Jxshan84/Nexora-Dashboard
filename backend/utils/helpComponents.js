@@ -10,7 +10,7 @@ function createMenu() {
     new StringSelectMenuBuilder()
       .setCustomId("help_menu")
       .setPlaceholder("📂 Select a Category")
-      .addOptions([
+      .addOptions(
         {
           label: "Home",
           value: "home",
@@ -52,8 +52,8 @@ function createMenu() {
           value: "management",
           emoji: "👑",
           description: "Owner Commands",
-        },
-      ])
+        }
+      )
   );
 }
 
@@ -63,7 +63,7 @@ function createButtons() {
       .setLabel("Dashboard")
       .setEmoji("🌐")
       .setStyle(ButtonStyle.Link)
-      .setURL("https://nexora-dashboard-one.vercel.app")
+      .setURL("https://nexora-dashboard-one.vercel.app"),
 
     new ButtonBuilder()
       .setLabel("Support")
