@@ -63,13 +63,13 @@ function createButtons() {
       .setLabel("Dashboard")
       .setEmoji("🌐")
       .setStyle(ButtonStyle.Link)
-      .setURL("https://YOUR-DASHBOARD.com"),
+      .setURL("https://nexora-dashboard-one.vercel.app")
 
     new ButtonBuilder()
       .setLabel("Support")
       .setEmoji("💬")
       .setStyle(ButtonStyle.Link)
-      .setURL("https://discord.gg/YOURSERVER"),
+      .setURL("https://discord.gg/DMnyEPmV5m"),
 
     new ButtonBuilder()
       .setCustomId("refresh_help")
