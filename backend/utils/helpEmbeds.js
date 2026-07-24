@@ -30,7 +30,9 @@ Select a category below to view commands.
 👑 Management`
     )
     .setThumbnail(client.user.displayAvatarURL({ size: 1024 }))
-    .setImage("https://i.imgur.com/Z4Q8Q7L.png")
+    .setImage(
+  "https://raw.githubusercontent.com/Jxshan84/Rudra-Dashboard/main/backend/assets/rudra-help-banner.png"
+)
     .setFooter({
       text: `Requested by ${user.username}`,
       iconURL: user.displayAvatarURL(),
